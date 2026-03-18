@@ -2,7 +2,7 @@
 from fastui import FastUI, AnyComponent, prebuilt_html, components as components
 from fastui.components.display import DisplayMode,DisplayLookup
 from fastui.events import GoToEvent, BackEvent
-import fastui_fo
+import fastui.forms as forms
 from pydoc import plain
 import psycopg2 as ps
 import asyncio
@@ -48,7 +48,7 @@ async def send_email_async(subject: str, recipients:str, body:str):
     fast_mail = FastMail(configuracija_pochty)
     await fast_mail.send_message(message)
 @app.post("/api/add_urok_submit", response_model=FastUI,response_model_exclude_none=True)
-async def insert_DB_urok_s_GrIntr(form:Annotated[Urok_Schema,fastui_fo(Urok_Schema)]):
+async def insert_DB_urok_s_GrIntr(form:Annotated[Urok_Schema,forms(Urok_Schema)]):
     print(form)
 @app.post("/api/add_urok", response_model=FastUI,response_model_exclude_none=True)
 async def create_urok_graph_inter():
