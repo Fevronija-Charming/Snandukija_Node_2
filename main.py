@@ -1,5 +1,6 @@
 from openpyxl import Workbook
 #frontend часть
+from fastapi.responses import HTMLResponse
 from fastui import FastUI, AnyComponent, prebuilt_html, components as components
 from fastui.components.display import DisplayMode,DisplayLookup
 from fastui.events import GoToEvent, BackEvent
@@ -293,7 +294,9 @@ async def create_tables():
 # session.add(stupen_eksemprjar5)
 # await session.commit()
 # await session.close()
-
+@app.get('/{path:path}')
+async def html_landing() -> HTMLResponse:
+    return HTMLResponse(prebuilt_html(title='FastUI Demo'))
 async def main():
     init(autoreset=True)
     #await kostily_BD()
