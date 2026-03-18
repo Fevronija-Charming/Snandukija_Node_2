@@ -1,4 +1,8 @@
-from openpyxl import Workbook
+#frontend часть
+from fastui import FastUI, AnyComponent, prebuilt_html, components as components
+from fastui.components.display import DisplayMode,DisplayLookup
+from fastui.events import GoToEvent, BackEvent
+import fastui_fo
 from pydoc import plain
 import psycopg2 as ps
 import asyncio
@@ -43,6 +47,14 @@ async def send_email_async(subject: str, recipients:str, body:str):
     message=MessageSchema(subject=subject,recipients=recipient_list,body=body,subtype=MessageType.plain)
     fast_mail = FastMail(configuracija_pochty)
     await fast_mail.send_message(message)
+@app.post("/api/add_urok_submit", response_model=FastUI,response_model_exclude_none=True)
+async def insert_DB_urok_s_GrIntr(form:Annotated[Urok_Schema,fastui_fo(Urok_Schema)]):
+    print(form)
+@app.post("/api/add_urok", response_model=FastUI,response_model_exclude_none=True)
+async def create_urok_graph_inter():
+    return [components.Page(components=
+                            [components.Heading(text="Добавить урок",level=2),
+                             components.ModelForm(model=Urok_Schema,submit_url="/api/add_urok_submit")])]
 #переключение на зайца
 #@app.post("/urok", summary="Зарегестрировать урок",tags=["УРОКИ"])
 @router.post("/project", summary="Зарегестрировать проект", tags=["ПРОЕКТ"])
