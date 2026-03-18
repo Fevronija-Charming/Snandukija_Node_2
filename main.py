@@ -10,6 +10,8 @@ import os
 import datetime, time
 from colorama import *
 from dotenv import find_dotenv, load_dotenv
+from fastui.forms import FastUIForm
+
 load_dotenv(find_dotenv())
 #заяц включён
 from faststream.rabbit.fastapi import RabbitBroker, RabbitRouter
@@ -48,7 +50,7 @@ async def send_email_async(subject: str, recipients:str, body:str):
     fast_mail = FastMail(configuracija_pochty)
     await fast_mail.send_message(message)
 @app.post("/api/add_urok_submit", response_model=FastUI,response_model_exclude_none=True)
-async def insert_DB_urok_s_GrIntr(form:Annotated[Urok_Schema,fastui_form(Urok_Schema)]):
+async def insert_DB_urok_s_GrIntr(form:Annotated[Urok_Schema,FastUIForm[Urok_Schema]]):
     print(form)
 @app.post("/api/add_urok", response_model=FastUI,response_model_exclude_none=True)
 async def create_urok_graph_inter():
