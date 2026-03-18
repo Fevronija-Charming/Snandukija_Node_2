@@ -53,7 +53,7 @@ async def send_email_async(subject: str, recipients:str, body:str):
 async def insert_DB_urok_s_GrIntr(form:Annotated[Urok_Schema,FastUIForm[Urok_Schema]]):
     print(form)
 @app.post("/api/add_urok", response_model=FastUI,response_model_exclude_none=True)
-async def create_urok_graph_inter():
+async def create_urok_graph_inter() -> list[AnyComponent]:
     return [components.Page(components=
                             [components.Heading(text="Добавить урок",level=2),
                              components.ModelForm(model=Urok_Schema,submit_url="/api/add_urok_submit")])]
