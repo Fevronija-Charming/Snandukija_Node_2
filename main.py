@@ -11,7 +11,6 @@ import datetime, time
 from colorama import *
 from dotenv import find_dotenv, load_dotenv
 from fastui.forms import FastUIForm
-
 load_dotenv(find_dotenv())
 #заяц включён
 from faststream.rabbit.fastapi import RabbitBroker, RabbitRouter
@@ -298,7 +297,7 @@ async def main():
     init(autoreset=True)
     #await kostily_BD()
     await create_tables()
-    uvicorn.run("main:app", reload=True, port=8000)
+    uvicorn.run("main:app", reload=True)
     #создать предметы
     #await create_predmety()
     #await create_stupeni()
@@ -306,4 +305,4 @@ async def main():
 app.include_router(router)
 if __name__ == "__main__":
     asyncio.run(main())
-
+#web: gunicorn -w 4 -k uvicorn.workers.UvicornWorker main:app --host=0.0.0.0 --port=8000
