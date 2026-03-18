@@ -1,3 +1,4 @@
+from openpyxl import Workbook
 #frontend часть
 from fastui import FastUI, AnyComponent, prebuilt_html, components as components
 from fastui.components.display import DisplayMode,DisplayLookup
