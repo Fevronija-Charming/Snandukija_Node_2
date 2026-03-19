@@ -55,9 +55,9 @@ def insert_DB_urok_s_GrIntr(form:Annotated[Urok_Schema,FastUIForm[Urok_Schema]])
     print(form)
 @app.get("/api", response_model=FastUI,response_model_exclude_none=True)
 def create_urok_graph_inter():
-    return [components.Page(components=
+    return components.Page(components=
                             [components.Heading(text="Добавить урок",level=2),
-                             components.ModelForm(model=Urok_Schema,submit_url="/api/add_urok_submit")])]
+                             components.ModelForm(model=Urok_Schema,submit_url="/api/add_urok_submit")])
 #переключение на зайца
 #@app.post("/urok", summary="Зарегестрировать урок",tags=["УРОКИ"])
 @router.post("/project", summary="Зарегестрировать проект", tags=["ПРОЕКТ"])
