@@ -6,7 +6,9 @@ from fastui import FastUI, AnyComponent, prebuilt_html, components as components
 from fastui.components.display import DisplayMode,DisplayLookup
 from fastui.events import GoToEvent, BackEvent
 import fastui.forms as forms
+import python_multipart
 from pydoc import plain
+from fastapi import Form
 import psycopg2 as ps
 import asyncio
 import os
@@ -53,15 +55,67 @@ async def send_email_async(subject: str, recipients:str, body:str):
     message=MessageSchema(subject=subject,recipients=recipient_list,body=body,subtype=MessageType.plain)
     fast_mail = FastMail(configuracija_pochty)
     await fast_mail.send_message(message)
-@gamajun.post("/gamajun/api/submit", response_model=FastUI,response_model_exclude_none=True)
-def insert_DB_urok_s_GrIntr(form:Annotated[Urok_Schema,fastui_form(Urok_Schema)]):
-    print(**form.model_dump())
-    return form
+#@gamajun.post("/gamajun/add/", response_model=FastUI,response_model_exclude_none=True)
+#def insert_DB_urok_s_GrIntr(form:Annotated[Urok_Schema,FastUIForm[Urok_Schema]]):
+#return Form()
+@app.post("/add/")
+async def insert_DB_urok_s_GrIntr( Имя_Преподавателя: str = Form(),Фамилия_Преподавателя: str = Form(),
+    Предмет_Обучения: str = Form(),Имя_Ученика: str= Form(),Фамилия_Ученика: str= Form(),Ступень_Обучения: str= Form(),
+    Дата_Проведения: str= Form(),Время_Начала: str= Form(),Длительность_Занятия_Мин: int= Form(),
+    Стоимость_Занятия_Центов: int= Form(), Что_Делали_На_Уроке: str= Form(),
+    Задание_На_Дом: str= Form(), Примечание: str= Form()):
+    peremycka1 = " -> "
+    peremycka2 = "; "
+    soobshenije1 = "Имя_Преподавателя"
+    soobshenije2 = soobshenije1 + peremycka1 + Имя_Преподавателя + peremycka2
+    soobshenije3 = "Фамилия_Преподавателя"
+    soobshenije4 = soobshenije2 + soobshenije3 +  peremycka1 + Фамилия_Преподавателя + peremycka2
+    soobshenije5="Предмет_Обучения"
+    soobshenije6 = soobshenije4 + soobshenije5 + peremycka1 + Предмет_Обучения + peremycka2
+    soobshenije7 = "Имя_Ученика"
+    soobshenije8=soobshenije6 + soobshenije7 + peremycka1 + Имя_Ученика + peremycka2
+    soobshenije9="Фамилия_Ученика"
+    soobshenije10 = soobshenije8 + soobshenije9 + peremycka1 + Фамилия_Ученика + peremycka2
+    soobshenije11= "Ступень_Обучения"
+    soobshenije12 = soobshenije10 + soobshenije11 + peremycka1 + Ступень_Обучения + peremycka2
+    soobshenije13 = "Дата_Проведения"
+    soobshenije14 = soobshenije12 + soobshenije13 + peremycka1 + Дата_Проведения + peremycka2
+    soobshenije15= "Время_Начала"
+    soobshenije16= soobshenije14 + soobshenije15 + peremycka1 + Время_Начала + peremycka2
+    soobshenije17 = "Длительность_Занятия_Мин"
+    soobshenije18 = soobshenije16 + soobshenije17 + peremycka1 + str(Длительность_Занятия_Мин) + peremycka2
+    soobshenije19 = "Стоимость_Занятия_Центов"
+    soobshenije20 = soobshenije18 + soobshenije19 + peremycka1 + str(Стоимость_Занятия_Центов) + peremycka2
+    soobshenije21="Что_Делали_На_Уроке"
+    soobshenije22 = soobshenije20 + soobshenije21 + peremycka1 + Что_Делали_На_Уроке + peremycka2
+    soobshenije23="Задание_На_Дом"
+    soobshenije24= soobshenije22 + soobshenije23 + peremycka1 + Задание_На_Дом + peremycka2
+    soobshenije25="Примечание"
+    soobshenije26 = soobshenije24 + soobshenije25 + peremycka1 + Примечание
+    try:
+        Urok_s_GrIntr = Уроки(Имя_Преподавателя=Имя_Преподавателя,Фамилия_Преподавателя=Фамилия_Преподавателя,
+        Предмет_Обучения = Предмет_Обучения, Имя_Ученика = Имя_Ученика,Фамилия_Ученика = Фамилия_Ученика,
+        Ступень_Обучения = Ступень_Обучения,Дата_Проведения = Дата_Проведения, Время_Начала = Время_Начала,
+        Длительность_Занятия_Мин = Длительность_Занятия_Мин, Стоимость_Занятия_Центов = Стоимость_Занятия_Центов,
+        Что_Делали_На_Уроке = Что_Делали_На_Уроке, Задание_На_Дом = Задание_На_Дом, Примечание = Примечание)
+        session = session_factory()
+        session.add(Urok_s_GrIntr)
+        # await session.commit()
+        await session.close()
+        try:
+            # заяц включен
+            await router.broker.publish(message="Добавлен новый урок", queue="UROKI")
+            await router.broker.publish(message=f"{soobshenije26}", queue="UROKI")
+            return soobshenije26
+        except:
+            raise HTTPException(status_code=500, detail="Проблема с брокером")
+    except:
+        raise HTTPException(status_code=500, detail="Проблема с базой данных")
 @gamajun.get("/api/", response_model=FastUI,response_model_exclude_none=True)
 def create_urok_graph_inter():
     return components.Page(components=
                             [components.Heading(text="Добавить урок",level=2),
-                             components.ModelForm(model=Urok_Schema,submit_url="/gamajun/api/submit")])
+                             components.ModelForm(model=Urok_Schema,submit_url="/add/")])
 #переключение на зайца
 #@app.post("/urok", summary="Зарегестрировать урок",tags=["УРОКИ"])
 @router.post("/project", summary="Зарегестрировать проект", tags=["ПРОЕКТ"])
@@ -312,6 +366,8 @@ async def main():
     #создать предметы
     #await create_predmety()
     #await create_stupeni()
+from fastapi.middleware.cors import CORSMiddleware
+gamajun.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 # заяц включён
 app.include_router(router)
 if __name__ == "__main__":
