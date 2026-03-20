@@ -100,7 +100,7 @@ async def insert_DB_urok_s_GrIntr( Имя_Преподавателя: str = Form
         Что_Делали_На_Уроке = Что_Делали_На_Уроке, Задание_На_Дом = Задание_На_Дом, Примечание = Примечание)
         session = session_factory()
         session.add(Urok_s_GrIntr)
-        # await session.commit()
+        await session.commit()
         await session.close()
         try:
             # заяц включен
