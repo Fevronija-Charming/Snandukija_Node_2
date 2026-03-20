@@ -59,7 +59,7 @@ async def send_email_async(subject: str, recipients:str, body:str):
 #def insert_DB_urok_s_GrIntr(form:Annotated[Urok_Schema,FastUIForm[Urok_Schema]]):
 #return Form()
 @app.post("/add/")
-async def insert_DB_urok_s_GrIntr( Имя_Преподавателя: str = Form(),Фамилия_Преподавателя: str = Form(),
+async def insert_DB_urok_s_GrIntr( background_task: BackgroundTasks,Имя_Преподавателя: str = Form(),Фамилия_Преподавателя: str = Form(),
     Предмет_Обучения: str = Form(),Имя_Ученика: str= Form(),Фамилия_Ученика: str= Form(),Ступень_Обучения: str= Form(),
     Дата_Проведения: str= Form(),Время_Начала: str= Form(),Длительность_Занятия_Мин: int= Form(),
     Стоимость_Занятия_Центов: int= Form(), Что_Делали_На_Уроке: str= Form(),
@@ -106,7 +106,12 @@ async def insert_DB_urok_s_GrIntr( Имя_Преподавателя: str = Form
             # заяц включен
             await router.broker.publish(message="Добавлен новый урок", queue="UROKI")
             await router.broker.publish(message=f"{soobshenije26}", queue="UROKI")
-            return soobshenije26
+            try:
+                recipient = os.getenv("RECIPIENT1")
+                background_task.add_task(send_email_async, "Добавлен новый урок", recipient,soobshenije26)
+                return soobshenije26
+            except:
+                raise HTTPException(status_code=500, detail="Проблема с почтой")
         except:
             raise HTTPException(status_code=500, detail="Проблема с брокером")
     except:
