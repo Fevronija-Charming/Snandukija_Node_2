@@ -90,7 +90,7 @@ async def insert_DB_project_s_GrIntr(background_task: BackgroundTasks, id: int= 
         session.add(Project_s_GrIntr)
         await session.commit()
         await session.close()
-        try:
+        #try:
             # заяц включен
             await router.broker.publish(message="Добавлен новый проект", queue="UROKI")
             await router.broker.publish(message=f"{soobshenije}", queue="UROKI")
@@ -102,8 +102,8 @@ async def insert_DB_project_s_GrIntr(background_task: BackgroundTasks, id: int= 
                 raise HTTPException(status_code=500, detail="Проблема с почтой")
         except:
             raise HTTPException(status_code=500, detail="Проблема с брокером")
-    except:
-        raise HTTPException(status_code=500, detail="Проблема с базой данных")
+            #except:
+        #raise HTTPException(status_code=500, detail="Проблема с базой данных")
 
 
 @app.post("/add/")
