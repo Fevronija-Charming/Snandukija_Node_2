@@ -34,7 +34,7 @@ from sqlalchemy import  DateTime, String, Float, Column, Integer, func, Text,BIG
 from sqlalchemy import select, delete, insert, update
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 engine = create_async_engine(os.getenv("DBURL"),echo=True,max_overflow=5,pool_size=5)
-session_factory = async_sessionmaker(bind=engine,class_=AsyncSession,expire_on_commit=False)
+session_factory = async_sessionmaker(bind=engine,class_=AsyncSession,expire_on_commit=False,autoflush=True)
 from datamodels import Уроки, Уроки_Архив, Base, Проект
 from datamodels import Project_Schema, Urok_Schema
 #конфигурация сервиса по отправке почты
@@ -47,7 +47,7 @@ configuracija_pochty=ConnectionConfig(MAIL_USERNAME=os.getenv("MAIL_USERNAME"),
                                       MAIL_FROM_NAME=os.getenv("MAIL_FROM_NAME"),
 MAIL_PORT=os.getenv("MAIL_PORT"),MAIL_SERVER=os.getenv("MAIL_SERVER"),MAIL_STARTTLS=os.getenv("MAIL_STARTTLS"),
 MAIL_SSL_TLS=os.getenv("MAIL_SSL_TLS"),USE_CREDENTIALS=os.getenv("USE_CREDENTIALS"))
-#фоновая задача
+#фоновая задача для отправки почты
 from fastapi import BackgroundTasks
 async def send_email_async(subject: str, recipients:str, body:str):
     recipient_list = []
@@ -58,8 +58,56 @@ async def send_email_async(subject: str, recipients:str, body:str):
 #@gamajun.post("/gamajun/add/", response_model=FastUI,response_model_exclude_none=True)
 #def insert_DB_urok_s_GrIntr(form:Annotated[Urok_Schema,FastUIForm[Urok_Schema]]):
 #return Form()
+#@app.post("/add/")
+#async def insert_DB_urok_s_GrIntr(urok: Annotated[Urok_Schema, Depends()]):
+#print(urok)
+#return urok
+#фронт на fastUI ВИДЖЕТЫ СТРАНИЦЫ ФРОНТА
+from templates import field_labels_project
+@app.post("/add/project")
+async def insert_DB_project_s_GrIntr(background_task: BackgroundTasks, id: int= Form(), Название_проекта: str = Form(),
+    Критерий_завершенности: str =  Form(), Этап_1: str = Form(), Этап_2: str = Form(), Этап_3: str = Form(),
+    Этап_4: str = Form(), Этап_5: str = Form(), Этап_6: str = Form(), Этап_7: str = Form(), Этап_8: str = Form(),
+    Этап_9: str = Form(), Этап_10: str = Form()):
+    svedenija_project = [Название_проекта,Критерий_завершенности,Этап_1,Этап_2,Этап_3,Этап_4,Этап_5,Этап_6,Этап_7,
+    Этап_8,Этап_9,Этап_10]
+    peremycka1 = " -> "
+    peremycka2 = "; "
+    soobshenije=""
+    for i in range(len(svedenija_project)):
+        soobshenije=soobshenije + field_labels_project[i] + peremycka1 + svedenija_project[i] + peremycka2
+    try:
+        tochnoje_vremja = str(datetime.datetime.now())
+        vremja_format = tochnoje_vremja[:-10]
+        sekundi = int(time.time())
+        Project_s_GrIntr = Проект(Название_проекта=Название_проекта,Критерий_завершенности=Критерий_завершенности,
+        Завершённость_проекта=0, Этап_1 = Этап_1, Завершенность_Этап_1=0, Этап_2 = Этап_2, Завершенность_Этап_2=0,
+        Этап_3 = Этап_3, Завершенность_Этап_3=0, Этап_4 = Этап_4, Завершенность_Этап_4=0, Этап_5 = Этап_5,
+        Завершенность_Этап_5=0, Этап_6 = Этап_6, Завершенность_Этап_6=0, Этап_7 = Этап_7, Завершенность_Этап_7=0,
+        Этап_8 = Этап_8, Завершенность_Этап_8=0, Этап_9 = Этап_9, Завершенность_Этап_9=0, Этап_10 = Этап_10,
+        Завершенность_Этап_10=0, Дата_регистрации=vremja_format, Дата_изменения=vremja_format,Синхронизация=sekundi)
+        session = session_factory()
+        session.add(Project_s_GrIntr)
+        await session.commit()
+        await session.close()
+        try:
+            # заяц включен
+            await router.broker.publish(message="Добавлен новый проект", queue="UROKI")
+            await router.broker.publish(message=f"{soobshenije}", queue="UROKI")
+            try:
+                recipient = os.getenv("RECIPIENT1")
+                background_task.add_task(send_email_async, "Добавлен новый проект", recipient, soobshenije)
+                return soobshenije
+            except:
+                raise HTTPException(status_code=500, detail="Проблема с почтой")
+        except:
+            raise HTTPException(status_code=500, detail="Проблема с брокером")
+    except:
+        raise HTTPException(status_code=500, detail="Проблема с базой данных")
+
+
 @app.post("/add/")
-async def insert_DB_urok_s_GrIntr( background_task: BackgroundTasks,Имя_Преподавателя: str = Form(),Фамилия_Преподавателя: str = Form(),
+async def insert_DB_urok_s_GrIntr(background_task: BackgroundTasks,Имя_Преподавателя: str = Form(),Фамилия_Преподавателя: str = Form(),
     Предмет_Обучения: str = Form(),Имя_Ученика: str= Form(),Фамилия_Ученика: str= Form(),Ступень_Обучения: str= Form(),
     Дата_Проведения: str= Form(),Время_Начала: str= Form(),Длительность_Занятия_Мин: int= Form(),
     Стоимость_Занятия_Центов: int= Form(), Что_Делали_На_Уроке: str= Form(),
@@ -121,6 +169,11 @@ def create_urok_graph_inter():
     return components.Page(components=
                             [components.Heading(text="Добавить урок",level=2),
                              components.ModelForm(model=Urok_Schema,submit_url="/add/")])
+@gamajun.get("/api/project", response_model=FastUI,response_model_exclude_none=True)
+def create_urok_graph_inter():
+    return components.Page(components=
+                            [components.Heading(text="Добавить проект",level=2),
+                             components.ModelForm(model=Project_Schema,submit_url="/add/project")])
 #переключение на зайца
 #@app.post("/urok", summary="Зарегестрировать урок",tags=["УРОКИ"])
 @router.post("/project", summary="Зарегестрировать проект", tags=["ПРОЕКТ"])
