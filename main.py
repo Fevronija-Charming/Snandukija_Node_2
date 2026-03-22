@@ -76,7 +76,7 @@ async def insert_DB_project_s_GrIntr(background_task: BackgroundTasks, id: int= 
     soobshenije=""
     for i in range(len(svedenija_project)):
         soobshenije=soobshenije + field_labels_project[i] + peremycka1 + svedenija_project[i] + peremycka2
-    #try:
+    try:
         tochnoje_vremja = str(datetime.datetime.now())
         vremja_format = tochnoje_vremja[:-10]
         sekundi = int(time.time())
@@ -103,8 +103,8 @@ async def insert_DB_project_s_GrIntr(background_task: BackgroundTasks, id: int= 
                 raise HTTPException(status_code=500, detail="Проблема с почтой")
         except:
             raise HTTPException(status_code=500, detail="Проблема с брокером")
-            #except:
-        #raise HTTPException(status_code=500, detail="Проблема с базой данных")
+    except:
+        raise HTTPException(status_code=500, detail="Проблема с базой данных")
 @app.post("/add/")
 async def insert_DB_urok_s_GrIntr(background_task: BackgroundTasks,Имя_Преподавателя: str = Form(),Фамилия_Преподавателя: str = Form(),
     Предмет_Обучения: str = Form(),Имя_Ученика: str= Form(),Фамилия_Ученика: str= Form(),Ступень_Обучения: str= Form(),
