@@ -76,6 +76,7 @@ async def insert_DB_project_s_GrIntr(background_task: BackgroundTasks, id: int= 
     soobshenije=""
     for i in range(len(svedenija_project)):
         soobshenije=soobshenije + field_labels_project[i] + peremycka1 + svedenija_project[i] + peremycka2
+    print(soobshenije)
     try:
         tochnoje_vremja = str(datetime.datetime.now())
         vremja_format = tochnoje_vremja[:-10]
