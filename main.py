@@ -8,7 +8,7 @@ from fastui.events import GoToEvent, BackEvent
 import fastui.forms as forms
 import python_multipart
 from pydoc import plain
-from fastapi import Form
+from fastapi import Form, UploadFile
 import psycopg2 as ps
 import asyncio
 import os
@@ -55,6 +55,13 @@ async def send_email_async(subject: str, recipients:str, body:str):
     message=MessageSchema(subject=subject,recipients=recipient_list,body=body,subtype=MessageType.plain)
     fast_mail = FastMail(configuracija_pochty)
     await fast_mail.send_message(message)
+async def send_email_async_file(subject: str, recipients:str, body:str,file_path:str):
+    recipient_list = []
+    recipient_list.append(recipients)
+    message=MessageSchema(subject=subject,recipients=recipient_list,body=body,subtype=MessageType.plain,attachments=[file_path])
+    fast_mail = FastMail(configuracija_pochty)
+    await fast_mail.send_message(message)
+    #os.remove(file_path)
 #@gamajun.post("/gamajun/add/", response_model=FastUI,response_model_exclude_none=True)
 #def insert_DB_urok_s_GrIntr(form:Annotated[Urok_Schema,FastUIForm[Urok_Schema]]):
 #return Form()
@@ -257,56 +264,66 @@ async def create_urok(urok: Annotated[Urok_Schema, Depends()]):
     except:
         raise HTTPException(status_code=500, detail="Проблема с базой данных")
 @app.get("/vedomost", summary="Получить ведомость", tags=["ВЕДОМОСТЬ"])
-async def get_vedomost():
-    connection = ps.connect(host=os.getenv("DBHOST"), database=os.getenv("DBNAME"), user=os.getenv("DBUSERNAME"),
+async def get_vedomost(background_task: BackgroundTasks):
+    try:
+        connection = ps.connect(host=os.getenv("DBHOST"), database=os.getenv("DBNAME"), user=os.getenv("DBUSERNAME"),
                             password=os.getenv("DBPASSWORD"), port=os.getenv("DBPORT"))
-    # создание интерфейса для sql запроса
-    cursor = connection.cursor()
-    zapros = "SELECT * FROM Уроки ORDER BY Дата_Проведения ASC;"
-    cursor.execute(zapros)
-    vedomost=[]
-    zarplata=0
-    chasy=0
-    # создание excel fail
-    wb=Workbook()
-    ws=wb.active
-    ws.title="Ведомость"
-    while True:
-        next_row = cursor.fetchone()
-        if next_row:
-            chasy=chasy+(next_row[9])/60
-            zarplata=zarplata+(next_row[10])/100
-            vedomost.append(next_row)
-            ws.append(next_row)
-        else:
-            cursor.close()
-            connection.close()
-            session = session_factory()
-            offset_rjada=0
-            for row in vedomost:
-                den_uroka=row[7]
-                cislo_mesjac=den_uroka[4]
-                print(cislo_mesjac)
-                id_uroka=100*int(cislo_mesjac)+offset_rjada
-                urok_eksemp = Уроки_Архив(id=id_uroka,Имя_Преподавателя=row[1],Фамилия_Преподавателя=row[2],
-                Предмет_Обучения=row[3], Имя_Ученика=row[4],Фамилия_Ученика=row[5], Ступень_Обучения=row[6],
-                Дата_Проведения=row[7], Время_Начала=row[8],Длительность_Занятия_Мин=row[9],
-                Стоимость_Занятия_Центов=row[10],Что_Делали_На_Уроке=row[11], Задание_На_Дом=row[12],
-                Примечание=row[13])
-                session.add(urok_eksemp)
-                offset_rjada+=1
-            smdt=delete(Уроки)
-            await session.execute(smdt)
-            await session.commit()
-            await session.close()
-            try:
-                ws.append(["/","/","/","/","/","/","/","/","/",chasy,zarplata])
-                wb.save("Посчитать зарплату.xlsx")
-                return FileResponse(path="Посчитать зарплату.xlsx", filename="Посчитать зарплату.xlsx",
-                    media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-            except:
-                return {"error": "File not found"}
-
+        # создание интерфейса для sql запроса
+        cursor = connection.cursor()
+        zapros = "SELECT * FROM Уроки ORDER BY Дата_Проведения ASC;"
+        cursor.execute(zapros)
+        vedomost=[]
+        zarplata=0
+        chasy=0
+        # создание excel fail
+        wb=Workbook()
+        ws=wb.active
+        ws.title="Ведомость"
+        while True:
+            next_row = cursor.fetchone()
+            if next_row:
+                chasy=chasy+(next_row[9])/60
+                zarplata=zarplata+(next_row[10])/100
+                vedomost.append(next_row)
+                ws.append(next_row)
+            else:
+                cursor.close()
+                connection.close()
+                session = session_factory()
+                offset_rjada=0
+                for row in vedomost:
+                    den_uroka=row[7]
+                    cislo_mesjac=den_uroka[4]
+                    print(cislo_mesjac)
+                    id_uroka=100*int(cislo_mesjac)+offset_rjada
+                    urok_eksemp = Уроки_Архив(id=id_uroka,Имя_Преподавателя=row[1],Фамилия_Преподавателя=row[2],
+                    Предмет_Обучения=row[3], Имя_Ученика=row[4],Фамилия_Ученика=row[5], Ступень_Обучения=row[6],
+                    Дата_Проведения=row[7], Время_Начала=row[8],Длительность_Занятия_Мин=row[9],
+                    Стоимость_Занятия_Центов=row[10],Что_Делали_На_Уроке=row[11], Задание_На_Дом=row[12],
+                    Примечание=row[13])
+                    session.add(urok_eksemp)
+                    offset_rjada+=1
+                    smdt=delete(Уроки)
+                    await session.execute(smdt)
+                    await session.commit()
+                    await session.close()
+                    try:
+                        ws.append(["/","/","/","/","/","/","/","/","/",chasy,zarplata])
+                        ws.append(["SH õpilaste mitteilmuse pretsentsioonid 87,50"])
+                        ws.append(["Mittemakstud osa verbuarist 38,25"])
+                        ws.append(["Mittemasktud osa januarist 39,00"])
+                        ws.append(["Mittemasktud osa nomembrist 12,50"])
+                        wb.save("Посчитать зарплату.xlsx")
+                        try:
+                            soobshenije="See on aruanne märtsi tundide kohta"
+                            recipient = os.getenv("RECIPIENT1")
+                            File_path="Посчитать зарплату.xlsx"
+                            background_task.add_task(send_email_async_file, "Добавлен новый проект", recipient, soobshenije, File_path)
+                            return FileResponse(path="Посчитать зарплату.xlsx", filename="Посчитать зарплату.xlsx",
+                                        media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                        except: raise HTTPException(status_code=500, detail="Проблема с почтой")
+                    except: raise HTTPException(status_code=500, detail="Проблема с файлом")
+    except: raise HTTPException(status_code=500, detail="Проблема с базой данных")
 @app.get("/zapr", summary="Посчитать зарплату",tags=["ЗАРПЛАТА"])
 async def get_zapr():
     summa=0
