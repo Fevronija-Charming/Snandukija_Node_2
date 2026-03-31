@@ -318,7 +318,7 @@ async def get_vedomost(background_task: BackgroundTasks):
                             soobshenije="See on aruanne märtsi tundide kohta"
                             recipient = os.getenv("RECIPIENT2")
                             File_path="Посчитать зарплату.xlsx"
-                            background_task.add_task(send_email_async_file, "Добавлен новый проект", recipient, soobshenije, File_path)
+                            background_task.add_task(send_email_async_file, "Tunnid märtsis", recipient, soobshenije, File_path)
                             return FileResponse(path="Посчитать зарплату.xlsx", filename="Посчитать зарплату.xlsx",
                                         media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
                         except: raise HTTPException(status_code=500, detail="Проблема с почтой")
