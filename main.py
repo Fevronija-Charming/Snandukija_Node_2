@@ -316,7 +316,7 @@ async def get_vedomost(background_task: BackgroundTasks):
                         wb.save("Посчитать зарплату.xlsx")
                         try:
                             soobshenije="See on aruanne märtsi tundide kohta"
-                            recipient = os.getenv("RECIPIENT1")
+                            recipient = os.getenv("RECIPIENT2")
                             File_path="Посчитать зарплату.xlsx"
                             background_task.add_task(send_email_async_file, "Добавлен новый проект", recipient, soobshenije, File_path)
                             return FileResponse(path="Посчитать зарплату.xlsx", filename="Посчитать зарплату.xlsx",
