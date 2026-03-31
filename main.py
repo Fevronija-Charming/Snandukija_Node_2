@@ -303,26 +303,26 @@ async def get_vedomost(background_task: BackgroundTasks):
                     Примечание=row[13])
                     session.add(urok_eksemp)
                     offset_rjada+=1
-                    smdt=delete(Уроки)
-                    await session.execute(smdt)
-                    await session.commit()
-                    await session.close()
+                smdt=delete(Уроки)
+                await session.execute(smdt)
+                await session.commit()
+                await session.close()
+                try:
+                    ws.append(["/","/","/","/","/","/","/","/","/",chasy,zarplata])
+                    ws.append(["SH õpilaste mitteilmuse pretsentsioonid 87,50"])
+                    ws.append(["Mittemakstud osa verbuarist 38,25"])
+                    ws.append(["Mittemasktud osa januarist 39,00"])
+                    ws.append(["Mittemasktud osa nomembrist 12,50"])
+                    wb.save("Посчитать зарплату.xlsx")
                     try:
-                        ws.append(["/","/","/","/","/","/","/","/","/",chasy,zarplata])
-                        ws.append(["SH õpilaste mitteilmuse pretsentsioonid 87,50"])
-                        ws.append(["Mittemakstud osa verbuarist 38,25"])
-                        ws.append(["Mittemasktud osa januarist 39,00"])
-                        ws.append(["Mittemasktud osa nomembrist 12,50"])
-                        wb.save("Посчитать зарплату.xlsx")
-                        try:
                             soobshenije="See on aruanne märtsi tundide kohta"
                             recipient = os.getenv("RECIPIENT2")
                             File_path="Посчитать зарплату.xlsx"
                             background_task.add_task(send_email_async_file, "Tunnid märtsis", recipient, soobshenije, File_path)
                             return FileResponse(path="Посчитать зарплату.xlsx", filename="Посчитать зарплату.xlsx",
                                         media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-                        except: raise HTTPException(status_code=500, detail="Проблема с почтой")
-                    except: raise HTTPException(status_code=500, detail="Проблема с файлом")
+                    except: raise HTTPException(status_code=500, detail="Проблема с почтой")
+                except: raise HTTPException(status_code=500, detail="Проблема с файлом")
     except: raise HTTPException(status_code=500, detail="Проблема с базой данных")
 @app.get("/zapr", summary="Посчитать зарплату",tags=["ЗАРПЛАТА"])
 async def get_zapr():
