@@ -175,14 +175,12 @@ async def insert_DB_urok_s_GrIntr(background_task: BackgroundTasks,Имя_Пре
         raise HTTPException(status_code=500, detail="Проблема с базой данных")
 @gamajun.get("/api/results", response_model=FastUI,response_model_exclude_none=True)
 async def show_uroky(session: AsyncSession=Depends(session_factory)):
-    result=await session.execute(select(Уроки_Архив))
+    result=await session.execute(select(Уроки_Архив.Имя_Преподавателя))
     await session.close()
     data=result.scalars().all()
     return components.Page(components=
                             [components.Heading(text="Вот здесь уроки",level=1),
-                             components.Table(data=data,columns=[DisplayLookup(field='Имя Преподавателя'),
-                                                                 DisplayLookup(field='Имя Преподавателя'),
-                                                                 DisplayLookup(field='Имя Преподавателя')])])
+                             components.Table(data=data,columns=[DisplayLookup(field='Имя Преподавателя')])])
 @gamajun.get("/api/", response_model=FastUI,response_model_exclude_none=True)
 def create_urok_graph_inter():
     return components.Page(components=
