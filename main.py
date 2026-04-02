@@ -173,7 +173,7 @@ async def insert_DB_urok_s_GrIntr(background_task: BackgroundTasks,Имя_Пре
             raise HTTPException(status_code=500, detail="Проблема с брокером")
     except:
         raise HTTPException(status_code=500, detail="Проблема с базой данных")
-@gamajun.get("/api/results", response_model=FastUI,response_model_exclude_none=True)
+@app.get("/api/results", response_model=FastUI,response_model_exclude_none=True)
 async def show_uroky(session: AsyncSession=Depends(session_factory)):
     result=await session.execute(select(Уроки_Архив.Имя_Преподавателя))
     await session.close()
