@@ -175,12 +175,13 @@ async def insert_DB_urok_s_GrIntr(background_task: BackgroundTasks,Имя_Пре
     except:
         raise HTTPException(status_code=500, detail="Проблема с базой данных")
 @gamajun.get("/api/results", response_model=FastUI,response_model_exclude_none=True)
-async def show_uroky(session: AsyncSession=Depends(session_factory)):
+async def show_uroky():
+    import psycopg2 as ps
     connection = ps.connect(host=os.getenv("DBHOST"), database=os.getenv("DBNAME"), user=os.getenv("DBUSERNAME"),
     password=os.getenv("DBPASSWORD"), port=os.getenv("DBPORT"))
     # создание интерфейса для sql запроса
     cursor = connection.cursor()
-    zapros = "SELECT * FROM Уроки_Архив ORDER BY Дата_Проведения ASC;"
+    zapros = "SELECT * FROM Уроки_Архив ORDER BY Дата_Проведения ASC ;"
     cursor.execute(zapros)
     vedomost=[]
     while True:
