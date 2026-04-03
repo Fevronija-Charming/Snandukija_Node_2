@@ -175,11 +175,28 @@ async def insert_DB_urok_s_GrIntr(background_task: BackgroundTasks,Имя_Пре
         raise HTTPException(status_code=500, detail="Проблема с базой данных")
 @gamajun.get("/api/results", response_model=FastUI,response_model_exclude_none=True)
 async def show_uroky(session: AsyncSession=Depends(session_factory)):
-    results=await session.execute(select(Уроки_Архив))
-    uroki_result=results.scalars().all()
-    return components.Page(components=
-                            [components.Heading(text="Вот здесь уроки",level=1),
-                             components.Table(data=uroki_result),])
+    connection = ps.connect(host=os.getenv("DBHOST"), database=os.getenv("DBNAME"), user=os.getenv("DBUSERNAME"),
+    password=os.getenv("DBPASSWORD"), port=os.getenv("DBPORT"))
+    # создание интерфейса для sql запроса
+    cursor = connection.cursor()
+    zapros = "SELECT * FROM Уроки_Архив ORDER BY Дата_Проведения ASC;"
+    cursor.execute(zapros)
+    vedomost=[]
+    while True:
+        next_row = cursor.fetchone()
+        if next_row:
+            urok_disp=Urok_Schema_UI(id=next_row[0], Имя_Преподавателя=next_row[1], Фамилия_Преподавателя=next_row[2],
+            Предмет_Обучения=next_row[3], Имя_Ученика=next_row[4], Фамилия_Ученика=next_row[5],
+            Ступень_Обучения=next_row[6], Дата_Проведения=next_row[7], Время_Начала=next_row[8],
+            Длительность_Занятия_Мин=next_row[9], Стоимость_Занятия_Центов=next_row[10],
+            Что_Делали_На_Уроке=next_row[11], Задание_На_Дом=next_row[12], Примечание=next_row[13])
+            vedomost.append(urok_disp)
+        else:
+            cursor.close()
+            connection.close()
+            return components.Page(components=
+                            [components.Heading(text="Вот здесь уроки",level=2),
+                             components.Table(data=vedomost)])
 @gamajun.get("/api/", response_model=FastUI,response_model_exclude_none=True)
 def create_urok_graph_inter():
     return components.Page(components=
