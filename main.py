@@ -16,6 +16,7 @@ import datetime, time
 from colorama import *
 from dotenv import find_dotenv, load_dotenv
 from fastui.forms import FastUIForm
+from pandas.compat.numpy.function import validate_round
 from sqlalchemy.dialects.mssql.information_schema import columns
 
 load_dotenv(find_dotenv())
@@ -194,6 +195,7 @@ async def show_uroky(session: AsyncSession=Depends(session_factory)):
         else:
             cursor.close()
             connection.close()
+            print(vedomost)
             return components.Page(components=
                             [components.Heading(text="Вот здесь уроки",level=2),
                              components.Table(data=vedomost),])
