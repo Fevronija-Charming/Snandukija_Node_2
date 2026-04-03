@@ -183,7 +183,16 @@ async def show_uroky(session: AsyncSession=Depends(session_factory)):
                             DisplayLookup(field='1',mode=DisplayMode(Уроки_Архив.id)),
                             DisplayLookup(field='2',mode=DisplayMode(Уроки_Архив.Имя_Преподавателя)),
                             DisplayLookup(field='3',mode=DisplayMode(Уроки_Архив.Фамилия_Преподавателя)),
-                            DisplayLookup(field='4', mode=DisplayMode(Уроки_Архив.Имя_Ученика))
+                            DisplayLookup(field='4', mode=DisplayMode(Уроки_Архив.Имя_Ученика)),
+                            DisplayLookup(field='5', mode=DisplayMode(Уроки_Архив.Фамилия_Ученика)),
+                            DisplayLookup(field='6', mode=DisplayMode(Уроки_Архив.Ступень_Обучения)),
+                            DisplayLookup(field='7', mode=DisplayMode(Уроки_Архив.Дата_Проведения)),
+                            DisplayLookup(field='8', mode=DisplayMode(Уроки_Архив.Время_Начала)),
+                            DisplayLookup(field='9', mode=DisplayMode(Уроки_Архив.Длительность_Занятия_Мин)),
+                            DisplayLookup(field='10', mode=DisplayMode(Уроки_Архив.Стоимость_Занятия_Центов)),
+                            DisplayLookup(field='11', mode=DisplayMode(Уроки_Архив.Что_Делали_На_Уроке)),
+                            DisplayLookup(field='12', mode=DisplayMode(Уроки_Архив.Задание_На_Дом)),
+                            DisplayLookup(field='13', mode=DisplayMode(Уроки_Архив.Примечание)),
                              ])])
 @gamajun.get("/api/", response_model=FastUI,response_model_exclude_none=True)
 def create_urok_graph_inter():
