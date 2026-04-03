@@ -33,7 +33,7 @@ from fastapi import Depends
 from fastapi.responses import FileResponse
 #работа с базой данных
 from sqlalchemy import  DateTime, String, Float, Column, Integer, func, Text,BIGINT
-from sqlalchemy import select, delete, insert, update, query
+from sqlalchemy import select, delete, insert, update
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 engine = create_async_engine(os.getenv("DBURL"),echo=True,max_overflow=5,pool_size=5)
 session_factory = async_sessionmaker(bind=engine,class_=AsyncSession,expire_on_commit=False,autoflush=True)
@@ -178,7 +178,8 @@ async def show_uroky(session: AsyncSession=Depends(session_factory)):
     uroki_result=await session.query().all()
     return components.Page(components=
                             [components.Heading(text="Вот здесь уроки",level=1),
-                             components.Table(data=uroki_result,columns=[DisplayLookup(field='1',mode=DisplayMode(id))])])
+                             components.Table(data=uroki_result,columns=[DisplayLookup(field='1',mode=DisplayMode(Уроки_Архив.id)),
+                            DisplayLookup(field='2',mode=DisplayMode(Уроки_Архив.Имя_Преподавателя))])])
 @gamajun.get("/api/", response_model=FastUI,response_model_exclude_none=True)
 def create_urok_graph_inter():
     return components.Page(components=
