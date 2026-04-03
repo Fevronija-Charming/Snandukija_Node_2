@@ -174,7 +174,7 @@ async def insert_DB_urok_s_GrIntr(background_task: BackgroundTasks,Имя_Пре
             raise HTTPException(status_code=500, detail="Проблема с брокером")
     except:
         raise HTTPException(status_code=500, detail="Проблема с базой данных")
-@gamajun.get("/api/results", response_model=FastUI,response_model_by_alias=False)
+@gamajun.get("/api/results", response_model=FastUI,response_model_exclude_none=True)
 async def show_uroky(session: AsyncSession=Depends(session_factory)):
     connection = ps.connect(host=os.getenv("DBHOST"), database=os.getenv("DBNAME"), user=os.getenv("DBUSERNAME"),
     password=os.getenv("DBPASSWORD"), port=os.getenv("DBPORT"))
