@@ -178,21 +178,7 @@ async def show_uroky(session: AsyncSession=Depends(session_factory)):
     uroki_result=await session.execute(select(Уроки_Архив))
     return components.Page(components=
                             [components.Heading(text="Вот здесь уроки",level=1),
-                             components.Table[Urok_Schema_UI](data=uroki_result,columns=[
-                            DisplayLookup(field='1',mode=DisplayMode(Urok_Schema_UI.id)),
-                            DisplayLookup(field='2',mode=DisplayMode(Urok_Schema_UI.Имя_Преподавателя)),
-                            DisplayLookup(field='3',mode=DisplayMode(Urok_Schema_UI.Фамилия_Преподавателя)),
-                            DisplayLookup(field='4', mode=DisplayMode(Urok_Schema_UI.Имя_Ученика)),
-                            DisplayLookup(field='5', mode=DisplayMode(Urok_Schema_UI.Фамилия_Ученика)),
-                            DisplayLookup(field='6', mode=DisplayMode(Urok_Schema_UI.Ступень_Обучения)),
-                            DisplayLookup(field='7', mode=DisplayMode(Urok_Schema_UI.Дата_Проведения)),
-                            DisplayLookup(field='8', mode=DisplayMode(Urok_Schema_UI.Время_Начала)),
-                            DisplayLookup(field='9', mode=DisplayMode(Urok_Schema_UI.Длительность_Занятия_Мин)),
-                            DisplayLookup(field='10', mode=DisplayMode(Urok_Schema_UI.Стоимость_Занятия_Центов)),
-                            DisplayLookup(field='11', mode=DisplayMode(Urok_Schema_UI.Что_Делали_На_Уроке)),
-                            DisplayLookup(field='12', mode=DisplayMode(Urok_Schema_UI.Задание_На_Дом)),
-                            DisplayLookup(field='13', mode=DisplayMode(Urok_Schema_UI.Примечание)),
-                             ])])
+                             components.Table[Urok_Schema_UI](data=uroki_result,columns=[])])
 @gamajun.get("/api/", response_model=FastUI,response_model_exclude_none=True)
 def create_urok_graph_inter():
     return components.Page(components=
