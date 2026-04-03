@@ -32,7 +32,7 @@ from typing import Annotated
 from fastapi import Depends
 from fastapi.responses import FileResponse
 #работа с базой данных
-from sqlalchemy import  DateTime, String, Float, Column, Integer, func, Text,BIGINT
+from sqlalchemy import DateTime, String, Float, Column, Integer, func, Text, BIGINT, False_
 from sqlalchemy import select, delete, insert, update
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 engine = create_async_engine(os.getenv("DBURL"),echo=True,max_overflow=5,pool_size=5)
@@ -173,7 +173,7 @@ async def insert_DB_urok_s_GrIntr(background_task: BackgroundTasks,Имя_Пре
             raise HTTPException(status_code=500, detail="Проблема с брокером")
     except:
         raise HTTPException(status_code=500, detail="Проблема с базой данных")
-@gamajun.get("/api/results", response_model=FastUI,response_model_exclude_none=True)
+@gamajun.get("/api/results", response_model=FastUI,response_model_by_alias=False)
 async def show_uroky(session: AsyncSession=Depends(session_factory)):
     connection = ps.connect(host=os.getenv("DBHOST"), database=os.getenv("DBNAME"), user=os.getenv("DBUSERNAME"),
     password=os.getenv("DBPASSWORD"), port=os.getenv("DBPORT"))
@@ -196,7 +196,7 @@ async def show_uroky(session: AsyncSession=Depends(session_factory)):
             connection.close()
             return components.Page(components=
                             [components.Heading(text="Вот здесь уроки",level=2),
-                             components.Table(data=vedomost)])
+                             components.Table(data=vedomost),])
 @gamajun.get("/api/", response_model=FastUI,response_model_exclude_none=True)
 def create_urok_graph_inter():
     return components.Page(components=
