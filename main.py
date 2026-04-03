@@ -179,8 +179,12 @@ async def show_uroky(session: AsyncSession=Depends(session_factory)):
     uroki_result=result.scalars().all()
     return components.Page(components=
                             [components.Heading(text="Вот здесь уроки",level=1),
-                             components.Table(data=uroki_result,columns=[DisplayLookup(field='1',mode=DisplayMode(Уроки_Архив.id)),
-                            DisplayLookup(field='2',mode=DisplayMode(Уроки_Архив.Имя_Преподавателя))])])
+                             components.Table[Уроки_Архив](data=uroki_result,columns=[
+                            DisplayLookup(field='1',mode=DisplayMode(Уроки_Архив.id)),
+                            DisplayLookup(field='2',mode=DisplayMode(Уроки_Архив.Имя_Преподавателя)),
+                            DisplayLookup(field='3',mode=DisplayMode(Уроки_Архив.Фамилия_Преподавателя)),
+                            DisplayLookup(field='4', mode=DisplayMode(Уроки_Архив.Имя_Ученика))
+                             ])])
 @gamajun.get("/api/", response_model=FastUI,response_model_exclude_none=True)
 def create_urok_graph_inter():
     return components.Page(components=
