@@ -109,3 +109,18 @@ class Urok_Schema(BaseModel):
     Что_Делали_На_Уроке: str= Field(min_length=5, max_length=2000)
     Задание_На_Дом: str= Field(min_length=5, max_length=128)
     Примечание: str= Field(min_length=5, max_length=2000)
+class Urok_Schema_UI(BaseModel):
+    id: int
+    Имя_Преподавателя: str = Field(min_length=5, max_length=25)
+    Фамилия_Преподавателя: str = Field(min_length=5, max_length=25)
+    Предмет_Обучения: str = Field(min_length=5, max_length=25)
+    Имя_Ученика: str= Field(min_length=5, max_length=25)
+    Фамилия_Ученика: str= Field(min_length=5, max_length=25)
+    Ступень_Обучения: str= Field(min_length=5, max_length=25)
+    Дата_Проведения: str= Field(min_length=5, max_length=25)
+    Время_Начала: str= Field(min_length=5, max_length=25)
+    Длительность_Занятия_Мин: int
+    Стоимость_Занятия_Центов: int
+    Что_Делали_На_Уроке: str= Field(min_length=5, max_length=2000)
+    Задание_На_Дом: str= Field(min_length=5, max_length=128)
+    Примечание: str= Field(min_length=5, max_length=2000)
