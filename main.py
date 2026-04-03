@@ -196,9 +196,8 @@ async def show_uroky():
         else:
             cursor.close()
             connection.close()
-            print(vedomost)
             return components.Page(components=
-                            [components.Heading(text="Вот здесь уроки",level=2),
+                            [components.Heading(text="Вот здесь уроки",level=1),
                              components.Table(data=vedomost),])
 @gamajun.get("/api/", response_model=FastUI,response_model_exclude_none=True)
 def create_urok_graph_inter():
