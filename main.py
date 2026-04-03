@@ -38,7 +38,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sess
 engine = create_async_engine(os.getenv("DBURL"),echo=True,max_overflow=5,pool_size=5)
 session_factory = async_sessionmaker(bind=engine,class_=AsyncSession,expire_on_commit=False,autoflush=True)
 from datamodels import Уроки, Уроки_Архив, Base, Проект
-from datamodels import Project_Schema, Urok_Schema
+from datamodels import Project_Schema, Urok_Schema,Urok_Schema_UI
 #конфигурация сервиса по отправке почты
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
 from pydantic import EmailStr,BaseModel
@@ -177,22 +177,23 @@ async def insert_DB_urok_s_GrIntr(background_task: BackgroundTasks,Имя_Пре
 async def show_uroky(session: AsyncSession=Depends(session_factory)):
     result=await session.execute(select(Уроки_Архив))
     uroki_result=result.scalars().all()
+    print(uroki_result)
     return components.Page(components=
                             [components.Heading(text="Вот здесь уроки",level=1),
-                             components.Table[Уроки_Архив](data=uroki_result,columns=[
-                            DisplayLookup(field='1',mode=DisplayMode(Уроки_Архив.id)),
-                            DisplayLookup(field='2',mode=DisplayMode(Уроки_Архив.Имя_Преподавателя)),
-                            DisplayLookup(field='3',mode=DisplayMode(Уроки_Архив.Фамилия_Преподавателя)),
-                            DisplayLookup(field='4', mode=DisplayMode(Уроки_Архив.Имя_Ученика)),
-                            DisplayLookup(field='5', mode=DisplayMode(Уроки_Архив.Фамилия_Ученика)),
-                            DisplayLookup(field='6', mode=DisplayMode(Уроки_Архив.Ступень_Обучения)),
-                            DisplayLookup(field='7', mode=DisplayMode(Уроки_Архив.Дата_Проведения)),
-                            DisplayLookup(field='8', mode=DisplayMode(Уроки_Архив.Время_Начала)),
-                            DisplayLookup(field='9', mode=DisplayMode(Уроки_Архив.Длительность_Занятия_Мин)),
-                            DisplayLookup(field='10', mode=DisplayMode(Уроки_Архив.Стоимость_Занятия_Центов)),
-                            DisplayLookup(field='11', mode=DisplayMode(Уроки_Архив.Что_Делали_На_Уроке)),
-                            DisplayLookup(field='12', mode=DisplayMode(Уроки_Архив.Задание_На_Дом)),
-                            DisplayLookup(field='13', mode=DisplayMode(Уроки_Архив.Примечание)),
+                             components.Table[Urok_Schema_UI](data=uroki_result,columns=[
+                            DisplayLookup(field='1',mode=DisplayMode(Urok_Schema_UI.id)),
+                            DisplayLookup(field='2',mode=DisplayMode(Urok_Schema_UI.Имя_Преподавателя)),
+                            DisplayLookup(field='3',mode=DisplayMode(Urok_Schema_UI.Фамилия_Преподавателя)),
+                            DisplayLookup(field='4', mode=DisplayMode(Urok_Schema_UI.Имя_Ученика)),
+                            DisplayLookup(field='5', mode=DisplayMode(Urok_Schema_UI.Фамилия_Ученика)),
+                            DisplayLookup(field='6', mode=DisplayMode(Urok_Schema_UI.Ступень_Обучения)),
+                            DisplayLookup(field='7', mode=DisplayMode(Urok_Schema_UI.Дата_Проведения)),
+                            DisplayLookup(field='8', mode=DisplayMode(Urok_Schema_UI.Время_Начала)),
+                            DisplayLookup(field='9', mode=DisplayMode(Urok_Schema_UI.Длительность_Занятия_Мин)),
+                            DisplayLookup(field='10', mode=DisplayMode(Urok_Schema_UI.Стоимость_Занятия_Центов)),
+                            DisplayLookup(field='11', mode=DisplayMode(Urok_Schema_UI.Что_Делали_На_Уроке)),
+                            DisplayLookup(field='12', mode=DisplayMode(Urok_Schema_UI.Задание_На_Дом)),
+                            DisplayLookup(field='13', mode=DisplayMode(Urok_Schema_UI.Примечание)),
                              ])])
 @gamajun.get("/api/", response_model=FastUI,response_model_exclude_none=True)
 def create_urok_graph_inter():
