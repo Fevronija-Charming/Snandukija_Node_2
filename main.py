@@ -2,7 +2,7 @@ from openpyxl import Workbook
 #frontend часть
 from fastui.forms import fastui_form
 from fastapi.responses import HTMLResponse
-from fastui import FastUI, AnyComponent, prebuilt_html, components as components
+from fastui import FastUI, AnyComponent, prebuilt_html, components, forms as components
 from fastui.components.display import DisplayMode,DisplayLookup
 from fastui.events import GoToEvent, BackEvent
 import fastui.forms as forms
@@ -18,7 +18,6 @@ from dotenv import find_dotenv, load_dotenv
 from fastui.forms import FastUIForm
 from pandas.compat.numpy.function import validate_round
 from sqlalchemy.dialects.mssql.information_schema import columns
-
 load_dotenv(find_dotenv())
 #заяц включён
 from faststream.rabbit.fastapi import RabbitBroker, RabbitRouter
@@ -26,8 +25,12 @@ router=RabbitRouter(url=os.getenv("CLOUDAMQP_URL"))
 from fastapi import FastAPI
 from fastapi import HTTPException
 app = FastAPI()
+# ответвление для фронта
 gamajun=FastAPI()
 app.mount("/gamajun",gamajun)
+# статические компоненты в меню проекта
+from fastapi.staticfiles import StaticFiles
+gamajun.mount("/static",StaticFiles(directory="static"))
 import uvicorn
 from typing import Annotated
 from fastapi import Depends
@@ -174,6 +177,11 @@ async def insert_DB_urok_s_GrIntr(background_task: BackgroundTasks,Имя_Пре
             raise HTTPException(status_code=500, detail="Проблема с брокером")
     except:
         raise HTTPException(status_code=500, detail="Проблема с базой данных")
+@gamajun.get("/api/root", response_model=FastUI,response_model_exclude_none=True)
+async def show_uroky():
+    return components.Page(components=
+                           [components.Heading(text="Что надобно, Господин!", level=1),
+                            components.Image(src="static/gamajun.jpeg")],)
 @gamajun.get("/api/results", response_model=FastUI,response_model_exclude_none=True)
 async def show_uroky():
     import psycopg2 as ps
