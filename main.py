@@ -181,7 +181,7 @@ async def insert_DB_urok_s_GrIntr(background_task: BackgroundTasks,Имя_Пре
 async def show_uroky():
     return components.Page(components=
                            [components.Heading(text="Что надобно, Господин!", level=1),
-                            components.Image(src="static/gamajun.jpeg")],)
+                            components.Image(src="static/gamajun.jpg")],)
 @gamajun.get("/api/results", response_model=FastUI,response_model_exclude_none=True)
 async def show_uroky():
     import psycopg2 as ps
