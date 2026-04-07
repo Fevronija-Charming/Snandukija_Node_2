@@ -180,8 +180,12 @@ async def insert_DB_urok_s_GrIntr(background_task: BackgroundTasks,Имя_Пре
 @gamajun.get("/api/root", response_model=FastUI,response_model_exclude_none=True)
 async def show_uroky():
     return components.Page(components=
-                           [components.Heading(text="Что надобно, Господин!", level=1),
-                            components.Image(src="static/gamajun.jpg")],)
+                           [components.Heading(text="Что надобно, Господин?", level=2),
+                            components.Image(src="static/gamajun.jpg",width=500,height=500),
+                            components.Link(
+                                            components=
+                                                      [components.Text(text="Ввести данные о новом уроке")],
+                                                       on_click=GoToEvent(url="/gamajun/"),)])
 @gamajun.get("/api/results", response_model=FastUI,response_model_exclude_none=True)
 async def show_uroky():
     import psycopg2 as ps
