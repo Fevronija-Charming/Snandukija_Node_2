@@ -2,7 +2,7 @@ from openpyxl import Workbook
 #frontend часть
 from fastui.forms import fastui_form
 from fastapi.responses import HTMLResponse
-from fastui import FastUI, AnyComponent, prebuilt_html, components, forms as components
+from fastui import FastUI, AnyComponent, prebuilt_html, components as components
 from fastui.components.display import DisplayMode,DisplayLookup
 from fastui.events import GoToEvent, BackEvent
 import fastui.forms as forms
