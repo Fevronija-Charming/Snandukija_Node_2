@@ -179,13 +179,14 @@ async def insert_DB_urok_s_GrIntr(background_task: BackgroundTasks,Имя_Пре
         raise HTTPException(status_code=500, detail="Проблема с базой данных")
 @gamajun.get("/api/root", response_model=FastUI,response_model_exclude_none=True)
 async def show_uroky():
-    return components.Page(components=
+    return components.Div(components=
                            [components.Heading(text="Что надобно, Господин?", level=2),
                             components.Image(src="static/gamajun.jpg",width=500,height=500),
-                            components.Link(
-                                            components=
-                                                      [components.Text(text="Ввести данные о новом уроке")],
-                                                       on_click=GoToEvent(url="/gamajun/"),)])
+                            components.Link(components=[components.Text(text="Ввести данные о новом уроке")],
+                                                       on_click=GoToEvent(url="/gamajun/")),
+                            components.Link(components=[components.Text(text="Посмотреть данные об уроках")],
+                                            on_click=GoToEvent(url="/gamajun/results")),],
+                          class_name="d-flex flex-column align-items-center")
 @gamajun.get("/api/results", response_model=FastUI,response_model_exclude_none=True)
 async def show_uroky():
     import psycopg2 as ps
@@ -211,6 +212,37 @@ async def show_uroky():
             return components.Page(components=
                             [components.Heading(text="Вот здесь уроки",level=1),
                              components.Table(data=vedomost),])
+@gamajun.get("/api/uroki", response_model=FastUI,response_model_exclude_none=True)
+async def show_uroky():
+    import psycopg2 as ps
+    connection = ps.connect(host=os.getenv("DBHOST"), database=os.getenv("DBNAME"), user=os.getenv("DBUSERNAME"),
+    password=os.getenv("DBPASSWORD"), port=os.getenv("DBPORT"))
+    # создание интерфейса для sql запроса
+    cursor = connection.cursor()
+    zapros = "SELECT * FROM Уроки ORDER BY Дата_Проведения ASC ;"
+    cursor.execute(zapros)
+    vedomost=[]
+    zarplata=0
+    chasy=0
+    while True:
+        next_row = cursor.fetchone()
+        if next_row:
+            urok_disp=Urok_Schema_UI(id=next_row[0], Имя_Преподавателя=next_row[1], Фамилия_Преподавателя=next_row[2],
+            Предмет_Обучения=next_row[3], Имя_Ученика=next_row[4], Фамилия_Ученика=next_row[5],
+            Ступень_Обучения=next_row[6], Дата_Проведения=next_row[7], Время_Начала=next_row[8],
+            Длительность_Занятия_Мин=next_row[9], Стоимость_Занятия_Центов=next_row[10],
+            Что_Делали_На_Уроке=next_row[11], Задание_На_Дом=next_row[12], Примечание=next_row[13])
+            vedomost.append(urok_disp)
+            zarplata=zarplata+next_row[10]
+            chasy=chasy+next_row[9]
+        else:
+            cursor.close()
+            connection.close()
+            return components.Div(components=
+                            [components.Heading(text="Вот здесь уроки",level=1),
+                            components.Table(data=vedomost),
+                            components.Paragraph(text=f"Проведено:{chasy/60} часов"),
+                            components.Paragraph(text=f"Заработано:{zarplata/100} EUR"),])
 @gamajun.get("/api/", response_model=FastUI,response_model_exclude_none=True)
 def create_urok_graph_inter():
     return components.Page(components=
