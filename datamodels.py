@@ -49,6 +49,34 @@ class Проект(Base):
     Дата_регистрации: Mapped[str] = mapped_column(String(128), nullable=False)
     Дата_изменения: Mapped[str] = mapped_column(String(128), nullable=False)
     Синхронизация: Mapped[int] = mapped_column(nullable=False)
+class Project_Schema_UI(BaseModel):
+    id: int
+    Название_проекта: str = Field(min_length=10, max_length=128)
+    Критерий_завершенности: str =  Field(min_length=10, max_length=128)
+    Завершённость_проекта: int
+    Этап_1: str = Field(min_length=5, max_length=128)
+    Завершенность_Этап_1: int
+    Этап_2: str = Field(min_length=5, max_length=128)
+    Завершенность_Этап_2: int
+    Этап_3: str = Field(min_length=5, max_length=128)
+    Завершенность_Этап_3: int
+    Этап_4: str = Field(min_length=5, max_length=128)
+    Завершенность_Этап_4: int
+    Этап_5: str = Field(min_length=5, max_length=128)
+    Завершенность_Этап_5: int
+    Этап_6: str = Field(min_length=5, max_length=128)
+    Завершенность_Этап_6: int
+    Этап_7: str = Field(min_length=5, max_length=128)
+    Завершенность_Этап_7: int
+    Этап_8: str = Field(min_length=5, max_length=128)
+    Завершенность_Этап_8: int
+    Этап_9: str = Field(min_length=5, max_length=128)
+    Завершенность_Этап_9: int
+    Этап_10: str = Field(min_length=5, max_length=128)
+    Завершенность_Этап_10: int
+    Дата_регистрации: str = Field(min_length=10, max_length=128)
+    Дата_изменения: str = Field(min_length=10, max_length=128)
+    Синхронизация: int
 class Уроки(Base):
     __tablename__ = "Уроки"
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, nullable=False)
@@ -124,3 +152,5 @@ class Urok_Schema_UI(BaseModel):
     Что_Делали_На_Уроке: str= Field(min_length=5, max_length=2000)
     Задание_На_Дом: str= Field(min_length=5, max_length=128)
     Примечание: str= Field(min_length=5, max_length=2000)
+class Uchenik_Poisk(BaseModel):
+    Имя_Ученика: str = Field(min_length=5, max_length=25)

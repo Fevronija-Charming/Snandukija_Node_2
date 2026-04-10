@@ -42,17 +42,16 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sess
 engine = create_async_engine(os.getenv("DBURL"),echo=True,max_overflow=5,pool_size=5)
 session_factory = async_sessionmaker(bind=engine,class_=AsyncSession,expire_on_commit=False,autoflush=True)
 from datamodels import Уроки, Уроки_Архив, Base, Проект
-from datamodels import Project_Schema, Urok_Schema,Urok_Schema_UI
+from datamodels import Project_Schema, Urok_Schema,Urok_Schema_UI,Project_Schema_UI,Uchenik_Poisk
 #конфигурация сервиса по отправке почты
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
 from pydantic import EmailStr,BaseModel
 from typing import List
 configuracija_pochty=ConnectionConfig(MAIL_USERNAME=os.getenv("MAIL_USERNAME"),
-                                      MAIL_FROM=os.getenv("MAIL_FROM"),
-                                      MAIL_PASSWORD=os.getenv("MAIL_PASSWORD"),
-                                      MAIL_FROM_NAME=os.getenv("MAIL_FROM_NAME"),
-MAIL_PORT=os.getenv("MAIL_PORT"),MAIL_SERVER=os.getenv("MAIL_SERVER"),MAIL_STARTTLS=os.getenv("MAIL_STARTTLS"),
-MAIL_SSL_TLS=os.getenv("MAIL_SSL_TLS"),USE_CREDENTIALS=os.getenv("USE_CREDENTIALS"))
+MAIL_FROM=str(os.getenv("MAIL_FROM")), MAIL_PASSWORD=str(os.getenv("MAIL_PASSWORD")),
+MAIL_FROM_NAME=os.getenv("MAIL_FROM_NAME"), MAIL_PORT=int(os.getenv("MAIL_PORT")),
+MAIL_SERVER=str(os.getenv("MAIL_SERVER")),MAIL_STARTTLS=bool(os.getenv("MAIL_STARTTLS")),
+MAIL_SSL_TLS=bool(os.getenv("MAIL_SSL_TLS")),USE_CREDENTIALS=bool(os.getenv("USE_CREDENTIALS")))
 #фоновая задача для отправки почты
 from fastapi import BackgroundTasks
 async def send_email_async(subject: str, recipients:str, body:str):
@@ -77,6 +76,40 @@ async def send_email_async_file(subject: str, recipients:str, body:str,file_path
 #return urok
 #фронт на fastUI ВИДЖЕТЫ СТРАНИЦЫ ФРОНТА
 from templates import field_labels_project
+@app.post("/search/ucheniky",response_model=FastUI,response_model_exclude_none=True)
+async def poisk_ucenika(Имя_Ученика = Form()):
+    query1 = select(Уроки_Архив).where(Уроки_Архив.Имя_Ученика == Имя_Ученика)
+    session = session_factory()
+    result1 = await session.execute(query1)
+    uroky = result1.scalars().all()
+    return components.Div(components=
+                          [components.Table(data=uroky),])
+@app.post("/search/uchenik/",response_model=FastUI,response_model_exclude_none=True)
+def poisk_ucenika(Имя_Ученика = Form()):
+    import psycopg2 as ps
+    connection = ps.connect(host=os.getenv("DBHOST"), database=os.getenv("DBNAME"), user=os.getenv("DBUSERNAME"),
+                            password=os.getenv("DBPASSWORD"), port=os.getenv("DBPORT"))
+    # создание интерфейса для sql запроса
+    cursor = connection.cursor()
+    zapros = "SELECT * FROM Уроки_Архив WHERE Имя_Ученика=%s;"
+    cursor.execute(zapros,(Имя_Ученика,))
+    vedomost = []
+    row = cursor.fetchall()
+    for element in row:
+        urok_disp = Urok_Schema_UI(id=element[0], Имя_Преподавателя=element[1], Фамилия_Преподавателя=element[2],
+                                       Предмет_Обучения=element[3], Имя_Ученика=element[4],
+                                       Фамилия_Ученика=element[5],
+                                       Ступень_Обучения=element[6], Дата_Проведения=element[7],
+                                       Время_Начала=element[8],
+                                       Длительность_Занятия_Мин=element[9], Стоимость_Занятия_Центов=element[10],
+                                       Что_Делали_На_Уроке=element[11],
+                                       Задание_На_Дом=element[12],
+                                       Примечание=element[13])
+        vedomost.append(urok_disp)
+    cursor.close()
+    connection.close()
+    return components.Div(components=
+                                   [components.Table(data=vedomost)])
 @app.post("/add/project")
 async def insert_DB_project_s_GrIntr(background_task: BackgroundTasks, id: int= Form(), Название_проекта: str = Form(),
     Критерий_завершенности: str =  Form(), Этап_1: str = Form(), Этап_2: str = Form(), Этап_3: str = Form(),
@@ -178,7 +211,7 @@ async def insert_DB_urok_s_GrIntr(background_task: BackgroundTasks,Имя_Пре
     except:
         raise HTTPException(status_code=500, detail="Проблема с базой данных")
 @gamajun.get("/api/root", response_model=FastUI,response_model_exclude_none=True)
-async def show_uroky():
+async def show_root():
     return components.Div(components=
                            [components.Heading(text="Чего надобно, Господин?", level=2),
                             components.Image(src="static/gamajun.jpg",width=500,height=500),
@@ -189,14 +222,61 @@ async def show_uroky():
                             components.Link(components=[components.Text(text="СВОДКА УРОКОВ В ТЕКУЩИЙ МЕСЯЦ")],
                                             on_click=GoToEvent(url="/gamajun/uroki")),],
                           class_name="d-flex flex-column align-items-center")
-@gamajun.get("/api/arhiv", response_model=FastUI,response_model_exclude_none=True)
-async def show_uroky():
+@gamajun.get("/api/project", response_model=FastUI,response_model_exclude_none=True)
+async def show_project():
     import psycopg2 as ps
     connection = ps.connect(host=os.getenv("DBHOST"), database=os.getenv("DBNAME"), user=os.getenv("DBUSERNAME"),
     password=os.getenv("DBPASSWORD"), port=os.getenv("DBPORT"))
     # создание интерфейса для sql запроса
     cursor = connection.cursor()
-    zapros = "SELECT * FROM Уроки_Архив ORDER BY Дата_Проведения ASC ;"
+    zapros = "SELECT * FROM Проект ORDER BY Синхронизация ASC ;"
+    cursor.execute(zapros)
+    vedomost=[]
+    while True:
+        next_row = cursor.fetchone()
+        if next_row:
+            project_disp=Project_Schema_UI(id=next_row[0],
+    Название_проекта=next_row[1],
+    Критерий_завершенности=next_row[2],
+    Завершённость_проекта=next_row[3],
+    Этап_1=next_row[4],
+    Завершенность_Этап_1=next_row[5],
+    Этап_2=next_row[6],
+    Завершенность_Этап_2=next_row[7],
+    Этап_3=next_row[8],
+    Завершенность_Этап_3=next_row[9],
+    Этап_4=next_row[10],
+    Завершенность_Этап_4=next_row[11],
+    Этап_5=next_row[12],
+    Завершенность_Этап_5=next_row[13],
+    Этап_6=next_row[14],
+    Завершенность_Этап_6=next_row[15],
+    Этап_7=next_row[16],
+    Завершенность_Этап_7=next_row[17],
+    Этап_8=next_row[18],
+    Завершенность_Этап_8=next_row[19],
+    Этап_9=next_row[20],
+    Завершенность_Этап_9=next_row[21],
+    Этап_10=next_row[22],
+    Завершенность_Этап_10=next_row[23],
+    Дата_регистрации=next_row[24],
+    Дата_изменения=next_row[25],
+    Синхронизация=next_row[26])
+            vedomost.append(project_disp)
+        else:
+            cursor.close()
+            connection.close()
+            return components.Page(components=
+                            [components.Heading(text="Вот здесь проекты",level=2),
+                             components.Table(data=vedomost),])
+@gamajun.get("/api/arhiv", response_model=FastUI,response_model_exclude_none=True)
+def show_uroky():
+    import psycopg2 as ps
+    connection = ps.connect(host=os.getenv("DBHOST"), database=os.getenv("DBNAME"), user=os.getenv("DBUSERNAME"),
+    password=os.getenv("DBPASSWORD"), port=os.getenv("DBPORT"))
+    # создание интерфейса для sql запроса
+    cursor = connection.cursor()
+    zapros = "SELECT * FROM Уроки_Архив ORDER BY id ASC ;"
     cursor.execute(zapros)
     vedomost=[]
     while True:
@@ -250,11 +330,18 @@ def create_urok_graph_inter():
     return components.Page(components=
                             [components.Heading(text="Добавить урок",level=2),
                              components.ModelForm(model=Urok_Schema,submit_url="/add/")])
-@gamajun.get("/api/project", response_model=FastUI,response_model_exclude_none=True)
+@gamajun.get("/api/add/project", response_model=FastUI,response_model_exclude_none=True)
 def create_urok_graph_inter():
     return components.Page(components=
                             [components.Heading(text="Добавить проект",level=2),
                              components.ModelForm(model=Project_Schema,submit_url="/add/project")])
+@gamajun.get("/api/uchenik/", response_model=FastUI,response_model_exclude_none=True)
+def create_urok_graph_inter():
+    return components.Div(components=
+                            [components.Heading(text="Найти ученика",level=2),
+                             components.ModelForm(model=Uchenik_Poisk,submit_url="/search/uchenik/"),
+                            ])
+###################################################################################################################
 #переключение на зайца
 #@app.post("/urok", summary="Зарегестрировать урок",tags=["УРОКИ"])
 @router.post("/project", summary="Зарегестрировать проект", tags=["ПРОЕКТ"])
