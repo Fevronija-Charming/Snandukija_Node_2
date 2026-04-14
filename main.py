@@ -4,7 +4,7 @@ from fastui.forms import fastui_form
 from fastapi.responses import HTMLResponse
 from fastui import FastUI, AnyComponent, prebuilt_html, components as components
 from fastui.components.display import DisplayMode,DisplayLookup
-from fastui.events import GoToEvent, BackEvent
+from fastui.events import GoToEvent, BackEvent, PageEvent
 import fastui.forms as forms
 import python_multipart
 from pydoc import plain
@@ -80,83 +80,57 @@ from templates import field_labels_project
 @gamajun.get("/api/root", response_model=FastUI,response_model_exclude_none=True)
 async def show_root():
     return components.Div(components=
-                           [components.Heading(text="Чего надобно, Господин?", level=2),
-                            components.Image(src="static/gamajun.jpg",width=500,height=500),
-                            components.Link(components=[components.Text(text="СЕГМЕНТ ПРОЕКТОВ")],
-                                            on_click=GoToEvent(url="/gamajun/project")),
-                            components.Link(components=[components.Text(text="СЕГМЕНТ УРОКОВ")],
-                                            on_click=GoToEvent(url="/gamajun/urok")),
-                            components.Link(components=[components.Text(text="СЕГМЕНТ ПРИВЫЧЕК")],
-                                            on_click=GoToEvent(url="/gamajun/privycka")),
-                            components.Link(components=[components.Text(text="СЕГМЕНТ КАЛЕНДАРНЫХ ДЕЛ")],
-                                            on_click=GoToEvent(url="/gamajun/kalendarnoje")),
-                            components.Link(components=[components.Text(text="СЕГМЕНТ РАЗОВЫХ ДЕЛ")],
-                                            on_click=GoToEvent(url="/gamajun/razovoje")),
-                            components.Link(components=[components.Text(text="АРХИВ УРОКОВ")],
-                                            on_click=GoToEvent(url="/gamajun/arhiv")),
-                            components.Link(components=[components.Text(text="ВВЕСТИ ДАННЫЕ ОБ УРОКЕ")],
-                                            on_click=GoToEvent(url="/gamajun/")),
-                            components.Link(components=[components.Text(text="СВОДКА УРОКОВ В ТЕКУЩИЙ МЕСЯЦ")],
-                                            on_click=GoToEvent(url="/gamajun/uroki")),],
-                          class_name="d-flex flex-column align-items-center")
+        [components.Heading(text="Чего надобно, Господин?", level=2),
+        components.Image(src="static/gamajun.jpg",width=500,height=500),
+        components.Link(components=[components.Text(text="СЕГМЕНТ ПРОЕКТОВ")],on_click=GoToEvent(url="/gamajun/project")),
+        components.Link(components=[components.Text(text="СЕГМЕНТ УРОКОВ")],on_click=GoToEvent(url="/gamajun/uroki")),
+        components.Link(components=[components.Text(text="СЕГМЕНТ ПРИВЫЧЕК")],on_click=GoToEvent(url="/gamajun/privychki")),
+        components.Link(components=[components.Text(text="СЕГМЕНТ КАЛЕНДАРНЫХ ДЕЛ")],on_click=GoToEvent(url="/gamajun/kalendarnoje")),
+        components.Link(components=[components.Text(text="СЕГМЕНТ РАЗОВЫХ ДЕЛ")],on_click=GoToEvent(url="/gamajun/razovoje")),
+        components.Link(components=[components.Text(text="СЕГМЕНТ ЗАМЕТОК")], on_click=GoToEvent(url="/gamajun/zametki")),],
+        class_name="d-flex flex-column align-items-center")
+#МЕНЮ ПЕРВОГО СЛОЯ
 #ОТРИСОВКА МЕНЮ УРОКОВ
-@gamajun.get("/api/urok",response_model=FastUI,response_model_exclude_none=True)
+@gamajun.get("/api/uroki",response_model=FastUI,response_model_exclude_none=True)
 async def show_urok():
     return components.Div(components=
-                          [components.Heading(text="СЕГМЕНТ УРОКОВ", level=2),
-                           components.Image(src="static/gamajun4.jpg", width=500, height=500),
-                            components.Link(components=[components.Text(text="ВВЕСТИ ДАННЫЕ ОБ УРОКЕ")],
-                                            on_click=GoToEvent(url="/gamajun/uroki/vvod/")),
-                            components.Link(components=[components.Text(text="ОТРЕДАКТИРОВАТЬ ЗАПИСЬ УРОКА")],
-                                            on_click=GoToEvent(url="/gamajun/uroki/redaktor/")),
-                            components.Link(components=[components.Text(text="УДАЛИТЬ ДАННЫЕ ОБ УРОКЕ")],
-                                            on_click=GoToEvent(url="/gamajun/uroki/delete/")),
-                            components.Link(components=[components.Text(text="ПОИСК В ЗАПИСЯХ ПО УРОКАМ")],
-                                            on_click=GoToEvent(url="/gamajun/uroki/redaktor/")),
-                            components.Link(components=[components.Text(text="АРХИВ УРОКОВ")],
-                                            on_click=GoToEvent(url="/gamajun/uroki/arhiv")),
-                            components.Link(components=[components.Text(text="СВОДКА УРОКОВ В ТЕКУЩИЙ МЕСЯЦ")],
-                                            on_click=GoToEvent(url="/gamajun/uroki/svodka")),
-                            components.Link(components=[components.Text(text="НАЗАД")],
-                                            on_click=GoToEvent(url="/gamajun/root")),],
-                          class_name="d-flex flex-column align-items-center")
+    [components.Heading(text="СЕГМЕНТ УРОКОВ", level=2),
+    components.Image(src="static/gamajun4.jpg", width=500, height=500),
+    components.Link(components=[components.Text(text="ВВЕСТИ ДАННЫЕ ОБ УРОКЕ")],on_click=GoToEvent(url="/gamajun/uroki/vvod/")),
+    components.Link(components=[components.Text(text="ОТРЕДАКТИРОВАТЬ ЗАПИСЬ УРОКА")],on_click=GoToEvent(url="/gamajun/uroki/redaktor/")),
+    components.Link(components=[components.Text(text="УДАЛИТЬ ДАННЫЕ ОБ УРОКЕ")],on_click=GoToEvent(url="/gamajun/uroki/delete/")),
+    components.Link(components=[components.Text(text="ПОИСК В ЗАПИСЯХ ПО УРОКАМ")],on_click=GoToEvent(url="/gamajun/uroki/poisk/")),
+    components.Link(components=[components.Text(text="АРХИВ УРОКОВ")],on_click=GoToEvent(url="/gamajun/uroki/arhiv")),
+    components.Link(components=[components.Text(text="СВОДКА УРОКОВ В ТЕКУЩИЙ МЕСЯЦ")],on_click=GoToEvent(url="/gamajun/uroki/svodka")),
+    components.Link(components=[components.Text(text="НАЗАД")],on_click=GoToEvent(url="/gamajun/root")),],
+    class_name="d-flex flex-column align-items-center")
 #ОТРИСОВКА МЕНЮ ПРОЕКТОВ
 @gamajun.get("/api/project",response_model=FastUI,response_model_exclude_none=True)
 async def show_project():
     return components.Div(components=
-                          [components.Heading(text="СЕГМЕНТ ПРОЕКТОВ", level=2),
-                           components.Image(src="static/gamajun2.jpg", width=500, height=500),
-                            components.Link(components=[components.Text(text="ВВЕСТИ ДАННЫЕ ОБ ПРОЕКТЕ")],
-                                            on_click=GoToEvent(url="/gamajun/project/vvod/")),
-                            components.Link(components=[components.Text(text="ОТРЕДАКТИРОВАТЬ ПРОЕКТ")],
-                                            on_click=GoToEvent(url="/gamajun/project/redaktor/")),
-                            components.Link(components=[components.Text(text="УДАЛИТЬ ДАННЫЕ ОБ ПРОЕКТЕ")],
-                                            on_click=GoToEvent(url="/gamajun/project/delete/")),
-                            components.Link(components=[components.Text(text="ПОИСК ПРОЕКТА")],
-                                            on_click=GoToEvent(url="/gamajun/project/redaktor/")),
-                            components.Link(components=[components.Text(text="АРХИВ ПРОЕКТОВ")],
-                                            on_click=GoToEvent(url="/gamajun/project/arhiv")),
-                            components.Link(components=[components.Text(text="НАЗАД")],
-                                            on_click=GoToEvent(url="/gamajun/root")),],
-                          class_name="d-flex flex-column align-items-center")
+    [components.Heading(text="СЕГМЕНТ ПРОЕКТОВ", level=2),
+    components.Image(src="static/gamajun2.jpg", width=500, height=500),
+    components.Link(components=[components.Text(text="СТОЛ ОТКРЫТЫХ ПРОЕКТОВ")],on_click=GoToEvent(url="/gamajun/project/svodka/")),
+    components.Link(components=[components.Text(text="ВВЕСТИ ДАННЫЕ ОБ ПРОЕКТЕ")],on_click=GoToEvent(url="/gamajun/project/vvod/")),
+    components.Link(components=[components.Text(text="ОТРЕДАКТИРОВАТЬ ПРОЕКТ")],on_click=GoToEvent(url="/gamajun/project/redaktor/")),
+    components.Link(components=[components.Text(text="УДАЛИТЬ ДАННЫЕ ОБ ПРОЕКТЕ")],on_click=GoToEvent(url="/gamajun/project/delete/")),
+    components.Link(components=[components.Text(text="ПОИСК ПРОЕКТА")],on_click=GoToEvent(url="/gamajun/project/redaktor/")),
+    components.Link(components=[components.Text(text="АРХИВ ПРОЕКТОВ")],on_click=GoToEvent(url="/gamajun/project/arhiv")),
+    components.Link(components=[components.Text(text="НАЗАД")],on_click=GoToEvent(url="/gamajun/root")),],
+    class_name="d-flex flex-column align-items-center")
 #ОТРИСОВКА МЕНЮ ПРИВЫЧЕК
-@gamajun.get("/api/privycka",response_model=FastUI,response_model_exclude_none=True)
+@gamajun.get("/api/privychki",response_model=FastUI,response_model_exclude_none=True)
 async def show_privycka():
     return components.Div(components=
         [components.Heading(text="СЕГМЕНТ ПРИВЫЧЕК", level=2),
         components.Image(src="static/gamajun7.jpg", width=500, height=500),
         components.Link(components=[components.Text(text="ВВЕСТИ ДАННЫЕ ОБ ПРИВЫЧКЕ")], on_click=GoToEvent(url="/gamajun/privycka/vvod")),
-                            components.Link(components=[components.Text(text="ОТКОРРЕКТИРОВАТЬ ПРИВЫЧКУ")],
-                                            on_click=GoToEvent(url="/gamajun/privycka/redaktor")),
-                            components.Link(components=[components.Text(text="УДАЛИТЬ ДАННЫЕ ОБ ПРИВЫЧКЕ")],
-                                            on_click=GoToEvent(url="/gamajun/privycka/delete")),
-                            components.Link(components=[components.Text(text="ПОИСК ПРИВЫЧКИ")],
-                                            on_click=GoToEvent(url="/gamajun/privycka/redaktor")),
-                            components.Link(components=[components.Text(text="АРХИВ ПРИВЫЧЕК")],
-                                            on_click=GoToEvent(url="/gamajun/privycka/arhiv")),
-                            components.Link(components=[components.Text(text="НАЗАД")],
-                                            on_click=GoToEvent(url="/gamajun/root")),],
-                          class_name="d-flex flex-column align-items-center")
+        components.Link(components=[components.Text(text="ОТКОРРЕКТИРОВАТЬ ПРИВЫЧКУ")],on_click=GoToEvent(url="/gamajun/privycka/redaktor")),
+        components.Link(components=[components.Text(text="УДАЛИТЬ ДАННЫЕ ОБ ПРИВЫЧКЕ")],on_click=GoToEvent(url="/gamajun/privycka/delete")),
+        components.Link(components=[components.Text(text="ПОИСК ПРИВЫЧКИ")],on_click=GoToEvent(url="/gamajun/privycka/redaktor")),
+        components.Link(components=[components.Text(text="АРХИВ ПРИВЫЧЕК")],on_click=GoToEvent(url="/gamajun/privycka/arhiv")),
+        components.Link(components=[components.Text(text="НАЗАД")],on_click=GoToEvent(url="/gamajun/root")),],
+        class_name="d-flex flex-column align-items-center")
 #ОТРИСОВКА МЕНЮ КАЛЕНДАРНЫХ ДЕЛ
 @gamajun.get("/api/kalendarnoje",response_model=FastUI,response_model_exclude_none=True)
 async def show_kalendarnoje():
@@ -174,17 +148,37 @@ async def show_kalendarnoje():
 @gamajun.get("/api/razovoje",response_model=FastUI,response_model_exclude_none=True)
 async def show_kalendarnoje():
     return components.Div(components=
-        [components.Heading(text="СЕГМЕНТ КАЛЕНДАРНЫХ ДЕЛ", level=2),
-        components.Image(src="static/gamajun6.jpg", width=500, height=500),
-        components.Link(components=[components.Text(text="ВВЕСТИ ДАННЫЕ ОБ КАЛЕНДАРНОМ СОБЫТИИ")], on_click=GoToEvent(url="/gamajun/kalendarnoje/vvod")),
-        components.Link(components=[components.Text(text="ОТКОРРЕКТИРОВАТЬ КАЛЕНДАРНОЕ СОБЫТИЕ")], on_click=GoToEvent(url="/gamajun/kalendarnoje/redaktor")),
-        components.Link(components=[components.Text(text="УДАЛИТЬ ДАННЫЕ ОБ КАЛЕНДАРНОМ СОБЫТИИ")], on_click=GoToEvent(url="/gamajun/kalendarnoje/delete")),
-        components.Link(components=[components.Text(text="ПОИСК В КАЛЕНДАРНЫХ СОБЫТИЯХ")], on_click=GoToEvent(url="/gamajun/kalendarnoje/redaktor")),
-        components.Link(components=[components.Text(text="АРХИВ КАЛЕНДАРНЫХ СОБЫТИЙ")], on_click=GoToEvent(url="/gamajun/kalendarnoje/arhiv")),
+        [components.Heading(text="СЕГМЕНТ РАЗОВЫХ ДЕЛ", level=2),
+        components.Image(src="static/gamajun8.jpg", width=500, height=500),
+        components.Link(components=[components.Text(text="ВВЕСТИ ДАННЫЕ ОБ РАЗОВОМ ДЕЛЕ")], on_click=GoToEvent(url="/gamajun/kalendarnoje/vvod")),
+        components.Link(components=[components.Text(text="ОТКОРРЕКТИРОВАТЬ РАЗОВОЕ ДЕЛО")], on_click=GoToEvent(url="/gamajun/kalendarnoje/redaktor")),
+        components.Link(components=[components.Text(text="УДАЛИТЬ ДАННЫЕ ОБ РАЗОВОМ ДЕЛЕ")], on_click=GoToEvent(url="/gamajun/kalendarnoje/delete")),
+        components.Link(components=[components.Text(text="ПОИСК В РАЗОВЫХ ДЕЛАХ")], on_click=GoToEvent(url="/gamajun/kalendarnoje/redaktor")),
+        components.Link(components=[components.Text(text="АРХИВ РАЗОВЫХ ДЕЛ")], on_click=GoToEvent(url="/gamajun/kalendarnoje/arhiv")),
+        components.Link(components=[components.Text(text="НАЗАД")],on_click=GoToEvent(url="/gamajun/root")),],
+        class_name="d-flex flex-column align-items-center")
+#ОТРИСОВКА МЕНЮ ЗАМЕТОК
+@gamajun.get("/api/zametki",response_model=FastUI,response_model_exclude_none=True)
+async def show_kalendarnoje():
+    return components.Div(components=
+        [components.Heading(text="СЕГМЕНТ ЗАМЕТОК", level=2),
+        components.Image(src="static/gamajun10.jpg", width=500, height=500),
+        components.Link(components=[components.Text(text="ВВЕСТИ ДАННЫЕ О ЗАМЕТКЕ")], on_click=GoToEvent(url="/gamajun/kalendarnoje/vvod")),
+        components.Link(components=[components.Text(text="РЕДАКТИРОВАТЬ ЗАМЕТКУ")], on_click=GoToEvent(url="/gamajun/kalendarnoje/redaktor")),
+        components.Link(components=[components.Text(text="УДАЛИТЬ ЗАМЕТКУ")], on_click=GoToEvent(url="/gamajun/kalendarnoje/delete")),
+        components.Link(components=[components.Text(text="ПОЛУЧИТЬ МЫСЛИ ПО ЗАМЕТКЕ")], on_click=GoToEvent(url="/gamajun/kalendarnoje/redaktor")),
+        components.Link(components=[components.Text(text="АРХИВ ЗАМЕТОК")], on_click=GoToEvent(url="/gamajun/ЯФЬУЕЛШ/arhiv")),
         components.Link(components=[components.Text(text="НАЗАД")],on_click=GoToEvent(url="/gamajun/root")),],
         class_name="d-flex flex-column align-items-center")
 #ФУНКЦИОНАЛ УЧЕНИКОВ И УРОКОВ
-@app.post("/api/search/uchenik/")
+@gamajun.get("/api/uroki/poisk/", response_model=FastUI,response_model_exclude_none=True)
+def create_urok_graph_inter():
+    return components.Div(components=
+                            [components.Heading(text="НАЙТИ УЧЕНИКА",level=2),
+                            components.ModelForm(model=Uchenik_Poisk,submit_url="/search/uchenik/"),
+                            ])
+#ВОЗВРАЩЕНИЕ ДАННЫХ ПО ИМЕНИ УЧЕНИКА
+@app.post("/search/uchenik",response_model=FastUI,response_model_exclude_none=True, summary="НЕ ИСПОЛЬЗОВАТЬ СО СВАГГЕРА FAST API", tags=["УРОКИ"])
 def poisk_ucenika(Имя_Ученика = Form()):
     import psycopg2 as ps
     connection = ps.connect(host=os.getenv("DBHOST"), database=os.getenv("DBNAME"), user=os.getenv("DBUSERNAME"),
@@ -348,7 +342,7 @@ async def insert_DB_urok_s_GrIntr(background_task: BackgroundTasks,Имя_Пре
             raise HTTPException(status_code=500, detail="Проблема с брокером")
     except:
         raise HTTPException(status_code=500, detail="Проблема с базой данных")
-@gamajun.get("/api/project", response_model=FastUI,response_model_exclude_none=True)
+@gamajun.get("/api/project/svodka/", response_model=FastUI,response_model_exclude_none=True)
 async def show_project():
     import psycopg2 as ps
     connection = ps.connect(host=os.getenv("DBHOST"), database=os.getenv("DBNAME"), user=os.getenv("DBUSERNAME"),
@@ -461,12 +455,6 @@ def create_urok_graph_inter():
     return components.Page(components=
                             [components.Heading(text="Добавить проект",level=2),
                              components.ModelForm(model=Project_Schema,submit_url="/add/project")])
-@gamajun.get("/api/uchenik/", response_model=FastUI,response_model_exclude_none=True)
-def create_urok_graph_inter():
-    return components.Div(components=
-                            [components.Heading(text="НАЙТИ УЧЕНИКА",level=2),
-                            components.ModelForm(model=Uchenik_Poisk,submit_url="/api/search/uchenik/"),
-                            ])
 ###################################################################################################################
 #переключение на зайца
 #@app.post("/urok", summary="Зарегестрировать урок",tags=["УРОКИ"])
