@@ -48,10 +48,10 @@ from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
 from pydantic import EmailStr,BaseModel
 from typing import List
 configuracija_pochty=ConnectionConfig(MAIL_USERNAME=os.getenv("MAIL_USERNAME"),
-MAIL_FROM=str(os.getenv("MAIL_FROM")), MAIL_PASSWORD=str(os.getenv("MAIL_PASSWORD")),
-MAIL_FROM_NAME=os.getenv("MAIL_FROM_NAME"), MAIL_PORT=int(os.getenv("MAIL_PORT")),
-MAIL_SERVER=str(os.getenv("MAIL_SERVER")),MAIL_STARTTLS=bool(os.getenv("MAIL_STARTTLS")),
-MAIL_SSL_TLS=bool(os.getenv("MAIL_SSL_TLS")),USE_CREDENTIALS=bool(os.getenv("USE_CREDENTIALS")))
+MAIL_FROM=(os.getenv("MAIL_FROM")), MAIL_PASSWORD=(os.getenv("MAIL_PASSWORD")),
+MAIL_FROM_NAME=os.getenv("MAIL_FROM_NAME"), MAIL_PORT=(os.getenv("MAIL_PORT")),
+MAIL_SERVER=(os.getenv("MAIL_SERVER")),MAIL_STARTTLS=(os.getenv("MAIL_STARTTLS")),
+MAIL_SSL_TLS=(os.getenv("MAIL_SSL_TLS")),USE_CREDENTIALS=os.getenv("USE_CREDENTIALS"))
 #фоновая задача для отправки почты
 from fastapi import BackgroundTasks
 async def send_email_async(subject: str, recipients:str, body:str):
@@ -75,7 +75,7 @@ async def send_email_async_file(subject: str, recipients:str, body:str,file_path
 #print(urok)
 #return urok
 #фронт на fastUI ВИДЖЕТЫ СТРАНИЦЫ ФРОНТА
-from templates import field_labels_project
+from templates import field_labels_project,uroki_labels
 #ОТРИСОВКА ГЛАВНОГО МЕНЮ
 @gamajun.get("/api/root", response_model=FastUI,response_model_exclude_none=True)
 async def show_root():
@@ -175,10 +175,11 @@ async def show_kalendarnoje():
 def create_urok_graph_inter():
     return components.Div(components=
                             [components.Heading(text="НАЙТИ УЧЕНИКА",level=2),
-                            components.ModelForm(model=Uchenik_Poisk,submit_url="/search/uchenik/"),
+                            components.ModelForm(model=Uchenik_Poisk,submit_url="/gamajun/api/search/uchenik"),
                             ])
 #ВОЗВРАЩЕНИЕ ДАННЫХ ПО ИМЕНИ УЧЕНИКА
-@app.post("/search/uchenik",response_model=FastUI,response_model_exclude_none=True, summary="НЕ ИСПОЛЬЗОВАТЬ СО СВАГГЕРА FAST API", tags=["УРОКИ"])
+#@app.post("/search/uchenik")
+@gamajun.post("/api/search/uchenik",response_model=FastUI,response_model_exclude_none=True, summary="НЕ ИСПОЛЬЗОВАТЬ СО СВАГГЕРА FAST API", tags=["УРОКИ"])
 def poisk_ucenika(Имя_Ученика = Form()):
     import psycopg2 as ps
     connection = ps.connect(host=os.getenv("DBHOST"), database=os.getenv("DBNAME"), user=os.getenv("DBUSERNAME"),
@@ -238,8 +239,8 @@ async def insert_DB_project_s_GrIntr(background_task: BackgroundTasks, id: int= 
             await router.broker.publish(message="Добавлен новый проект", queue="UROKI")
             await router.broker.publish(message=f"{soobshenije}", queue="UROKI")
             try:
-                recipient = os.getenv("RECIPIENT1")
-                background_task.add_task(send_email_async, "Добавлен новый проект", recipient, soobshenije)
+                #recipient = os.getenv("RECIPIENT1")
+                #background_task.add_task(send_email_async, "Добавлен новый проект", recipient, soobshenije)
                 return soobshenije
             except:
                 raise HTTPException(status_code=500, detail="Проблема с почтой")
@@ -284,40 +285,45 @@ async def insert_DB_urok_s_GrIntr(Фамилия_Ученика: str):
                     wb.save("ФОРМИРУЮЩЕЕ ОЦЕНИВАНИЕ.xlsx")
                     return FileResponse(path="ФОРМИРУЮЩЕЕ ОЦЕНИВАНИЕ.xlsx", filename="ФОРМИРУЮЩЕЕ ОЦЕНИВАНИЕ.xlsx",
                     media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-@app.post("/add/")
+@gamajun.post("/api/add")
 async def insert_DB_urok_s_GrIntr(background_task: BackgroundTasks,Имя_Преподавателя: str = Form(),Фамилия_Преподавателя: str = Form(),
     Предмет_Обучения: str = Form(),Имя_Ученика: str= Form(),Фамилия_Ученика: str= Form(),Ступень_Обучения: str= Form(),
     Дата_Проведения: str= Form(),Время_Начала: str= Form(),Длительность_Занятия_Мин: int= Form(),
     Стоимость_Занятия_Центов: int= Form(), Что_Делали_На_Уроке: str= Form(),
     Задание_На_Дом: str= Form(), Примечание: str= Form()):
-    peremycka1 = " -> "
-    peremycka2 = "; "
-    soobshenije1 = "Имя_Преподавателя"
-    soobshenije2 = soobshenije1 + peremycka1 + Имя_Преподавателя + peremycka2
-    soobshenije3 = "Фамилия_Преподавателя"
-    soobshenije4 = soobshenije2 + soobshenije3 +  peremycka1 + Фамилия_Преподавателя + peremycka2
-    soobshenije5="Предмет_Обучения"
-    soobshenije6 = soobshenije4 + soobshenije5 + peremycka1 + Предмет_Обучения + peremycka2
-    soobshenije7 = "Имя_Ученика"
-    soobshenije8=soobshenije6 + soobshenije7 + peremycka1 + Имя_Ученика + peremycka2
-    soobshenije9="Фамилия_Ученика"
-    soobshenije10 = soobshenije8 + soobshenije9 + peremycka1 + Фамилия_Ученика + peremycka2
-    soobshenije11= "Ступень_Обучения"
-    soobshenije12 = soobshenije10 + soobshenije11 + peremycka1 + Ступень_Обучения + peremycka2
-    soobshenije13 = "Дата_Проведения"
-    soobshenije14 = soobshenije12 + soobshenije13 + peremycka1 + Дата_Проведения + peremycka2
-    soobshenije15= "Время_Начала"
-    soobshenije16= soobshenije14 + soobshenije15 + peremycka1 + Время_Начала + peremycka2
-    soobshenije17 = "Длительность_Занятия_Мин"
-    soobshenije18 = soobshenije16 + soobshenije17 + peremycka1 + str(Длительность_Занятия_Мин) + peremycka2
-    soobshenije19 = "Стоимость_Занятия_Центов"
-    soobshenije20 = soobshenije18 + soobshenije19 + peremycka1 + str(Стоимость_Занятия_Центов) + peremycka2
-    soobshenije21="Что_Делали_На_Уроке"
-    soobshenije22 = soobshenije20 + soobshenije21 + peremycka1 + Что_Делали_На_Уроке + peremycka2
-    soobshenije23="Задание_На_Дом"
-    soobshenije24= soobshenije22 + soobshenije23 + peremycka1 + Задание_На_Дом + peremycka2
-    soobshenije25="Примечание"
-    soobshenije26 = soobshenije24 + soobshenije25 + peremycka1 + Примечание
+    svedenija_urok = [Имя_Преподавателя, Фамилия_Преподавателя, Предмет_Обучения, Имя_Ученика, Фамилия_Ученика, Ступень_Обучения,
+    Дата_Проведения, Время_Начала,str(Длительность_Занятия_Мин),str(Стоимость_Занятия_Центов), Что_Делали_На_Уроке,Задание_На_Дом, Примечание]
+    soobshenije=""
+    for i in range(len(svedenija_urok)):
+        soobshenije=soobshenije + uroki_labels[i] + " -> " + svedenija_urok[i] + "; "
+    #peremycka1 = " -> "
+    #peremycka2 = "; "
+    #soobshenije1 = "Имя_Преподавателя"
+    #soobshenije2 = soobshenije1 + peremycka1 + Имя_Преподавателя + peremycka2
+    #soobshenije3 = "Фамилия_Преподавателя"
+    #soobshenije4 = soobshenije2 + soobshenije3 +  peremycka1 + Фамилия_Преподавателя + peremycka2
+    #soobshenije5="Предмет_Обучения"
+    #soobshenije6 = soobshenije4 + soobshenije5 + peremycka1 + Предмет_Обучения + peremycka2
+    #soobshenije7 = "Имя_Ученика"
+    #soobshenije8=soobshenije6 + soobshenije7 + peremycka1 + Имя_Ученика + peremycka2
+    #soobshenije9="Фамилия_Ученика"
+    #soobshenije10 = soobshenije8 + soobshenije9 + peremycka1 + Фамилия_Ученика + peremycka2
+    #soobshenije11= "Ступень_Обучения"
+    #soobshenije12 = soobshenije10 + soobshenije11 + peremycka1 + Ступень_Обучения + peremycka2
+    #soobshenije13 = "Дата_Проведения"
+    #soobshenije14 = soobshenije12 + soobshenije13 + peremycka1 + Дата_Проведения + peremycka2
+    #soobshenije15= "Время_Начала"
+    #soobshenije16= soobshenije14 + soobshenije15 + peremycka1 + Время_Начала + peremycka2
+    #soobshenije17 = "Длительность_Занятия_Мин"
+    #soobshenije18 = soobshenije16 + soobshenije17 + peremycka1 + str(Длительность_Занятия_Мин) + peremycka2
+    #soobshenije19 = "Стоимость_Занятия_Центов"
+    #soobshenije20 = soobshenije18 + soobshenije19 + peremycka1 + str(Стоимость_Занятия_Центов) + peremycka2
+    #soobshenije21="Что_Делали_На_Уроке"
+    #soobshenije22 = soobshenije20 + soobshenije21 + peremycka1 + Что_Делали_На_Уроке + peremycka2
+    #soobshenije23="Задание_На_Дом"
+    #soobshenije24= soobshenije22 + soobshenije23 + peremycka1 + Задание_На_Дом + peremycka2
+    #soobshenije25="Примечание"
+    #soobshenije26 = soobshenije24 + soobshenije25 + peremycka1 + Примечание
     try:
         Urok_s_GrIntr = Уроки(Имя_Преподавателя=Имя_Преподавателя,Фамилия_Преподавателя=Фамилия_Преподавателя,
         Предмет_Обучения = Предмет_Обучения, Имя_Ученика = Имя_Ученика,Фамилия_Ученика = Фамилия_Ученика,
@@ -331,11 +337,11 @@ async def insert_DB_urok_s_GrIntr(background_task: BackgroundTasks,Имя_Пре
         try:
             # заяц включен
             await router.broker.publish(message="Добавлен новый урок", queue="UROKI")
-            await router.broker.publish(message=f"{soobshenije26}", queue="UROKI")
+            await router.broker.publish(message=f"{soobshenije}", queue="UROKI")
             try:
-                recipient = os.getenv("RECIPIENT1")
-                background_task.add_task(send_email_async, "Добавлен новый урок", recipient,soobshenije26)
-                return soobshenije26
+                #recipient = os.getenv("RECIPIENT1")
+                #background_task.add_task(send_email_async, "Добавлен новый урок", recipient,soobshenije26)
+                return soobshenije, components.FireEvent(event=GoToEvent(url="/gamajun/root"))
             except:
                 raise HTTPException(status_code=500, detail="Проблема с почтой")
         except:
@@ -414,7 +420,7 @@ def show_uroky():
             return components.Page(components=
                             [components.Heading(text="Вот здесь уроки",level=1),
                              components.Table(data=vedomost),])
-@gamajun.get("/api/uroki", response_model=FastUI,response_model_exclude_none=True)
+@gamajun.get("/api/uroki/svodka", response_model=FastUI,response_model_exclude_none=True)
 async def show_uroky():
     import psycopg2 as ps
     connection = ps.connect(host=os.getenv("DBHOST"), database=os.getenv("DBNAME"), user=os.getenv("DBUSERNAME"),
@@ -449,7 +455,7 @@ async def show_uroky():
 def create_urok_graph_inter():
     return components.Page(components=
                             [components.Heading(text="Добавить урок",level=2),
-                             components.ModelForm(model=Urok_Schema,submit_url="/add/")])
+                             components.ModelForm(model=Urok_Schema,submit_url="/gamajun/add"),])
 @gamajun.get("/api/add/project", response_model=FastUI,response_model_exclude_none=True)
 def create_urok_graph_inter():
     return components.Page(components=
