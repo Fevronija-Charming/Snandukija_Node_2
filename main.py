@@ -285,7 +285,8 @@ async def insert_DB_urok_s_GrIntr(Фамилия_Ученика: str):
                     wb.save("ФОРМИРУЮЩЕЕ ОЦЕНИВАНИЕ.xlsx")
                     return FileResponse(path="ФОРМИРУЮЩЕЕ ОЦЕНИВАНИЕ.xlsx", filename="ФОРМИРУЮЩЕЕ ОЦЕНИВАНИЕ.xlsx",
                     media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-@gamajun.post("/api/add")
+@app.post("/api/add")
+#@gamajun.post("/api/add")
 async def insert_DB_urok_s_GrIntr(background_task: BackgroundTasks,Имя_Преподавателя: str = Form(),Фамилия_Преподавателя: str = Form(),
     Предмет_Обучения: str = Form(),Имя_Ученика: str= Form(),Фамилия_Ученика: str= Form(),Ступень_Обучения: str= Form(),
     Дата_Проведения: str= Form(),Время_Начала: str= Form(),Длительность_Занятия_Мин: int= Form(),
