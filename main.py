@@ -340,8 +340,8 @@ async def insert_DB_urok_s_GrIntr(background_task: BackgroundTasks,Имя_Пре
             await router.broker.publish(message="Добавлен новый урок", queue="UROKI")
             await router.broker.publish(message=f"{soobshenije}", queue="UROKI")
             try:
-                #recipient = os.getenv("RECIPIENT1")
-                #background_task.add_task(send_email_async, "Добавлен новый урок", recipient,soobshenije26)
+                recipient = os.getenv("RECIPIENT1")
+                background_task.add_task(send_email_async, "Добавлен новый урок", recipient,soobshenije26)
                 return soobshenije, components.FireEvent(event=GoToEvent(url="/gamajun/root"))
             except:
                 raise HTTPException(status_code=500, detail="Проблема с почтой")
