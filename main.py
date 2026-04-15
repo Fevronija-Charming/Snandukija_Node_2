@@ -285,8 +285,13 @@ async def insert_DB_urok_s_GrIntr(Фамилия_Ученика: str):
                     wb.save("ФОРМИРУЮЩЕЕ ОЦЕНИВАНИЕ.xlsx")
                     return FileResponse(path="ФОРМИРУЮЩЕЕ ОЦЕНИВАНИЕ.xlsx", filename="ФОРМИРУЮЩЕЕ ОЦЕНИВАНИЕ.xlsx",
                     media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-@app.post("/add/")
+@gamajun.get("/api/uroki/vvod/", response_model=FastUI,response_model_exclude_none=True)
+def create_urok_graph_inter():
+    return components.Page(components=
+                            [components.Heading(text="Добавить урок",level=2),
+                             components.ModelForm(model=Urok_Schema,submit_url="/gamajun/api/uroki/add"),]) #/add
 #@gamajun.post("/api/add")
+@gamajun.post("/api/uroki/add")
 async def insert_DB_urok_s_GrIntr(background_task: BackgroundTasks,Имя_Преподавателя: str = Form(),Фамилия_Преподавателя: str = Form(),
     Предмет_Обучения: str = Form(),Имя_Ученика: str= Form(),Фамилия_Ученика: str= Form(),Ступень_Обучения: str= Form(),
     Дата_Проведения: str= Form(),Время_Начала: str= Form(),Длительность_Занятия_Мин: int= Form(),
@@ -452,11 +457,6 @@ async def show_uroky():
                             components.Table(data=vedomost),
                             components.Paragraph(text=f"Проведено:{chasy/60} часов"),
                             components.Paragraph(text=f"Заработано:{zarplata/100} EUR"),])
-@gamajun.get("/api/uroki/vvod/", response_model=FastUI,response_model_exclude_none=True)
-def create_urok_graph_inter():
-    return components.Page(components=
-                            [components.Heading(text="Добавить урок",level=2),
-                             components.ModelForm(model=Urok_Schema,submit_url="/add"),])
 @gamajun.get("/api/add/project", response_model=FastUI,response_model_exclude_none=True)
 def create_urok_graph_inter():
     return components.Page(components=
