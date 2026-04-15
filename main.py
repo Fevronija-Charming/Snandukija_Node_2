@@ -342,7 +342,7 @@ async def insert_DB_urok_s_GrIntr(background_task: BackgroundTasks,Имя_Пре
             try:
                 recipient = os.getenv("RECIPIENT1")
                 background_task.add_task(send_email_async, "Добавлен новый урок", recipient,soobshenije)
-                return soobshenije, components.FireEvent(event=GoToEvent(url="/api/root"))
+                return soobshenije, components.FireEvent(event=GoToEvent(url="/api/gamajun/root"))
             except:
                 raise HTTPException(status_code=500, detail="Проблема с почтой")
         except:
