@@ -41,8 +41,8 @@ from sqlalchemy import select, delete, insert, update
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 engine = create_async_engine(os.getenv("DBURL"),echo=True,max_overflow=5,pool_size=5)
 session_factory = async_sessionmaker(bind=engine,class_=AsyncSession,expire_on_commit=False,autoflush=True)
-from datamodels import Уроки, Уроки_Архив, Base, Проект
-from datamodels import Project_Schema, Urok_Schema,Urok_Schema_UI,Project_Schema_UI,Uchenik_Poisk
+from datamodels import Уроки, Уроки_Архив, Base, Проект,Привычки
+from datamodels import Project_Schema, Urok_Schema,Urok_Schema_UI,Project_Schema_UI,Uchenik_Poisk,Privycka_Schema
 #конфигурация сервиса по отправке почты
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
 from pydantic import EmailStr,BaseModel
@@ -75,7 +75,7 @@ async def send_email_async_file(subject: str, recipients:str, body:str,file_path
 #print(urok)
 #return urok
 #фронт на fastUI ВИДЖЕТЫ СТРАНИЦЫ ФРОНТА
-from templates import field_labels_project,uroki_labels
+from templates import field_labels_project,uroki_labels,privycka_labels
 #ОТРИСОВКА ГЛАВНОГО МЕНЮ
 @gamajun.get("/api/root", response_model=FastUI,response_model_exclude_none=True)
 async def show_root():
@@ -124,7 +124,7 @@ async def show_privycka():
     return components.Div(components=
         [components.Heading(text="СЕГМЕНТ ПРИВЫЧЕК", level=2),
         components.Image(src="static/gamajun7.jpg", width=500, height=500),
-        components.Link(components=[components.Text(text="ВВЕСТИ ДАННЫЕ ОБ ПРИВЫЧКЕ")], on_click=GoToEvent(url="/gamajun/privycka/vvod")),
+        components.Link(components=[components.Text(text="ВВЕСТИ ДАННЫЕ ОБ ПРИВЫЧКЕ")], on_click=GoToEvent(url="/gamajun/privycka/vvod/")),
         components.Link(components=[components.Text(text="ОТКОРРЕКТИРОВАТЬ ПРИВЫЧКУ")],on_click=GoToEvent(url="/gamajun/privycka/redaktor")),
         components.Link(components=[components.Text(text="УДАЛИТЬ ДАННЫЕ ОБ ПРИВЫЧКЕ")],on_click=GoToEvent(url="/gamajun/privycka/delete")),
         components.Link(components=[components.Text(text="ПОИСК ПРИВЫЧКИ")],on_click=GoToEvent(url="/gamajun/privycka/redaktor")),
@@ -170,6 +170,96 @@ async def show_kalendarnoje():
         components.Link(components=[components.Text(text="АРХИВ ЗАМЕТОК")], on_click=GoToEvent(url="/gamajun/ЯФЬУЕЛШ/arhiv")),
         components.Link(components=[components.Text(text="НАЗАД")],on_click=GoToEvent(url="/gamajun/root")),],
         class_name="d-flex flex-column align-items-center")
+#ВВОД НОВЫХ ДАННЫХ
+@gamajun.get("/api/uroki/vvod/", response_model=FastUI,response_model_exclude_none=True)
+def create_urok_graph_inter():
+    return components.Page(components=
+                            [components.Heading(text="Добавить урок",level=2),
+                             components.ModelForm(model=Urok_Schema,submit_url="/gamajun/api/uroki/add"),]) #/add
+@gamajun.get("/api/privycka/vvod/", response_model=FastUI,response_model_exclude_none=True)
+def create_urok_graph_inter():
+    return components.Page(components=
+                            [components.Heading(text="Добавить привычку",level=2),
+                             components.ModelForm(model=Privycka_Schema,submit_url="/gamajun/api/privycka/add"),]) #/add
+#РЕГИСТРАЦИЯ ДАННЫХ
+@gamajun.post("/api/privycka/add")
+async def insert_DB_privycka_s_GrIntr(background_task: BackgroundTasks, Требуемый_Навык: str = Form(), Главное_Препятствие: str = Form(),
+    Помогающий_Человек: str = Form(), Триггер_Привычки: str = Form(), Награда_Привычки: str = Form(), Требование_Заказчика: str = Form(),
+    Требование_Исполнителя: str = Form(),  Целевое_Число_Повторений: int = Form()):
+    svedenija_privycka = [Требуемый_Навык,Главное_Препятствие,Помогающий_Человек,Триггер_Привычки,Награда_Привычки,
+    Требование_Заказчика,Требование_Исполнителя,str(Целевое_Число_Повторений)]
+    peremycka1 = " -> "
+    peremycka2 = "; "
+    soobshenije=""
+    for i in range(len(svedenija_privycka)):
+        soobshenije=soobshenije + privycka_labels[i] + peremycka1 + svedenija_privycka[i] + peremycka2
+        tochnoje_vremja = str(datetime.datetime.now())
+        vremja_format = tochnoje_vremja[:-10]
+        sekundi = int(time.time())
+        Privycka_s_GrIntr = Привычки(#id=id,
+        Требуемый_Навык=Требуемый_Навык,Главное_Препятствие=Главное_Препятствие, Помогающий_Человек=Помогающий_Человек,
+        Триггер_Привычки=Триггер_Привычки,Награда_Привычки=Награда_Привычки,Требование_Заказчика=Требование_Заказчика,
+        Требование_Исполнителя=Требование_Исполнителя,Целевое_Число_Повторений=Целевое_Число_Повторений,
+        Дата_регистрации_ритуала=vremja_format,Дата_выполнения_ритуала=vremja_format,Отметка_Времени=sekundi)
+        session = session_factory()
+        session.add(Privycka_s_GrIntr)
+        await session.commit()
+        await session.close()
+        try:
+            # заяц включен
+            await router.broker.publish(message="Добавлена новая привычка", queue="UROKI")
+            await router.broker.publish(message=f"{soobshenije}", queue="UROKI")
+            try:
+                recipient = os.getenv("RECIPIENT1")
+                background_task.add_task(send_email_async, "Добавлена новая привычка", recipient, soobshenije)
+                return soobshenije, components.FireEvent(event=GoToEvent(url="/gamajun/root"))
+            except:
+                raise HTTPException(status_code=500, detail="Проблема с почтой")
+        except:
+            raise HTTPException(status_code=500, detail="Проблема с брокером")
+#raise HTTPException(status_code=500, detail="Проблема с базой данных")
+#@gamajun.post("/api/add")
+@gamajun.post("/api/uroki/add")
+async def insert_DB_urok_s_GrIntr(background_task: BackgroundTasks,Имя_Преподавателя: str = Form(),Фамилия_Преподавателя: str = Form(),
+    Предмет_Обучения: str = Form(),Имя_Ученика: str= Form(),Фамилия_Ученика: str= Form(),Ступень_Обучения: str= Form(),
+    Дата_Проведения: str= Form(),Время_Начала: str= Form(),Длительность_Занятия_Мин: int= Form(),
+    Стоимость_Занятия_Центов: int= Form(), Что_Делали_На_Уроке: str= Form(),
+    Задание_На_Дом: str= Form(), Примечание: str= Form()):
+    svedenija_urok = [Имя_Преподавателя, Фамилия_Преподавателя, Предмет_Обучения, Имя_Ученика, Фамилия_Ученика, Ступень_Обучения,
+    Дата_Проведения, Время_Начала,str(Длительность_Занятия_Мин),str(Стоимость_Занятия_Центов), Что_Делали_На_Уроке,Задание_На_Дом, Примечание]
+    soobshenije=""
+    for i in range(len(svedenija_urok)):
+        soobshenije=soobshenije + uroki_labels[i] + " -> " + svedenija_urok[i] + "; "
+    try:
+        Urok_s_GrIntr = Уроки(Имя_Преподавателя=Имя_Преподавателя,Фамилия_Преподавателя=Фамилия_Преподавателя,
+        Предмет_Обучения = Предмет_Обучения, Имя_Ученика = Имя_Ученика,Фамилия_Ученика = Фамилия_Ученика,
+        Ступень_Обучения = Ступень_Обучения,Дата_Проведения = Дата_Проведения, Время_Начала = Время_Начала,
+        Длительность_Занятия_Мин = Длительность_Занятия_Мин, Стоимость_Занятия_Центов = Стоимость_Занятия_Центов,
+        Что_Делали_На_Уроке = Что_Делали_На_Уроке, Задание_На_Дом = Задание_На_Дом, Примечание = Примечание)
+        session = session_factory()
+        session.add(Urok_s_GrIntr)
+        await session.commit()
+        await session.close()
+        try:
+            # заяц включен
+            await router.broker.publish(message="Добавлен новый урок", queue="UROKI")
+            await router.broker.publish(message=f"{soobshenije}", queue="UROKI")
+            try:
+                recipient = os.getenv("RECIPIENT1")
+                background_task.add_task(send_email_async, "Добавлен новый урок", recipient,soobshenije)
+                return soobshenije, components.FireEvent(event=GoToEvent(url="/gamajun/root"))
+            except:
+                raise HTTPException(status_code=500, detail="Проблема с почтой")
+        except:
+            raise HTTPException(status_code=500, detail="Проблема с брокером")
+    except:
+        raise HTTPException(status_code=500, detail="Проблема с базой данных")
+@gamajun.get("/api/add/project", response_model=FastUI,response_model_exclude_none=True)
+def create_urok_graph_inter():
+    return components.Page(components=
+                            [components.Heading(text="Добавить проект",level=2),
+                             components.ModelForm(model=Project_Schema,submit_url="/add/project")])
+
 #ФУНКЦИОНАЛ УЧЕНИКОВ И УРОКОВ
 @gamajun.get("/api/uroki/poisk/", response_model=FastUI,response_model_exclude_none=True)
 def create_urok_graph_inter():
@@ -285,11 +375,6 @@ async def insert_DB_urok_s_GrIntr(Фамилия_Ученика: str):
                     wb.save("ФОРМИРУЮЩЕЕ ОЦЕНИВАНИЕ.xlsx")
                     return FileResponse(path="ФОРМИРУЮЩЕЕ ОЦЕНИВАНИЕ.xlsx", filename="ФОРМИРУЮЩЕЕ ОЦЕНИВАНИЕ.xlsx",
                     media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-@gamajun.get("/api/uroki/vvod/", response_model=FastUI,response_model_exclude_none=True)
-def create_urok_graph_inter():
-    return components.Page(components=
-                            [components.Heading(text="Добавить урок",level=2),
-                             components.ModelForm(model=Urok_Schema,submit_url="/gamajun/api/uroki/add"),]) #/add
 #@gamajun.post("/api/add")
 @gamajun.post("/api/uroki/add")
 async def insert_DB_urok_s_GrIntr(background_task: BackgroundTasks,Имя_Преподавателя: str = Form(),Фамилия_Преподавателя: str = Form(),
@@ -302,34 +387,6 @@ async def insert_DB_urok_s_GrIntr(background_task: BackgroundTasks,Имя_Пре
     soobshenije=""
     for i in range(len(svedenija_urok)):
         soobshenije=soobshenije + uroki_labels[i] + " -> " + svedenija_urok[i] + "; "
-    #peremycka1 = " -> "
-    #peremycka2 = "; "
-    #soobshenije1 = "Имя_Преподавателя"
-    #soobshenije2 = soobshenije1 + peremycka1 + Имя_Преподавателя + peremycka2
-    #soobshenije3 = "Фамилия_Преподавателя"
-    #soobshenije4 = soobshenije2 + soobshenije3 +  peremycka1 + Фамилия_Преподавателя + peremycka2
-    #soobshenije5="Предмет_Обучения"
-    #soobshenije6 = soobshenije4 + soobshenije5 + peremycka1 + Предмет_Обучения + peremycka2
-    #soobshenije7 = "Имя_Ученика"
-    #soobshenije8=soobshenije6 + soobshenije7 + peremycka1 + Имя_Ученика + peremycka2
-    #soobshenije9="Фамилия_Ученика"
-    #soobshenije10 = soobshenije8 + soobshenije9 + peremycka1 + Фамилия_Ученика + peremycka2
-    #soobshenije11= "Ступень_Обучения"
-    #soobshenije12 = soobshenije10 + soobshenije11 + peremycka1 + Ступень_Обучения + peremycka2
-    #soobshenije13 = "Дата_Проведения"
-    #soobshenije14 = soobshenije12 + soobshenije13 + peremycka1 + Дата_Проведения + peremycka2
-    #soobshenije15= "Время_Начала"
-    #soobshenije16= soobshenije14 + soobshenije15 + peremycka1 + Время_Начала + peremycka2
-    #soobshenije17 = "Длительность_Занятия_Мин"
-    #soobshenije18 = soobshenije16 + soobshenije17 + peremycka1 + str(Длительность_Занятия_Мин) + peremycka2
-    #soobshenije19 = "Стоимость_Занятия_Центов"
-    #soobshenije20 = soobshenije18 + soobshenije19 + peremycka1 + str(Стоимость_Занятия_Центов) + peremycka2
-    #soobshenije21="Что_Делали_На_Уроке"
-    #soobshenije22 = soobshenije20 + soobshenije21 + peremycka1 + Что_Делали_На_Уроке + peremycka2
-    #soobshenije23="Задание_На_Дом"
-    #soobshenije24= soobshenije22 + soobshenije23 + peremycka1 + Задание_На_Дом + peremycka2
-    #soobshenije25="Примечание"
-    #soobshenije26 = soobshenije24 + soobshenije25 + peremycka1 + Примечание
     try:
         Urok_s_GrIntr = Уроки(Имя_Преподавателя=Имя_Преподавателя,Фамилия_Преподавателя=Фамилия_Преподавателя,
         Предмет_Обучения = Предмет_Обучения, Имя_Ученика = Имя_Ученика,Фамилия_Ученика = Фамилия_Ученика,
@@ -401,7 +458,7 @@ async def show_project():
             return components.Page(components=
                             [components.Heading(text="Вот здесь проекты",level=2),
                              components.Table(data=vedomost),])
-@gamajun.get("/api/arhiv", response_model=FastUI,response_model_exclude_none=True)
+@gamajun.get("/gamajun/uroki/arhiv", response_model=FastUI,response_model_exclude_none=True)
 def show_uroky():
     import psycopg2 as ps
     connection = ps.connect(host=os.getenv("DBHOST"), database=os.getenv("DBNAME"), user=os.getenv("DBUSERNAME"),
@@ -457,11 +514,6 @@ async def show_uroky():
                             components.Table(data=vedomost),
                             components.Paragraph(text=f"Проведено:{chasy/60} часов"),
                             components.Paragraph(text=f"Заработано:{zarplata/100} EUR"),])
-@gamajun.get("/api/add/project", response_model=FastUI,response_model_exclude_none=True)
-def create_urok_graph_inter():
-    return components.Page(components=
-                            [components.Heading(text="Добавить проект",level=2),
-                             components.ModelForm(model=Project_Schema,submit_url="/add/project")])
 ###################################################################################################################
 #переключение на зайца
 #@app.post("/urok", summary="Зарегестрировать урок",tags=["УРОКИ"])

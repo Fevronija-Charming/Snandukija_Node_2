@@ -109,6 +109,21 @@ class Уроки_Архив(Base):
     Что_Делали_На_Уроке: Mapped[str] = mapped_column(Text, nullable=False)
     Задание_На_Дом: Mapped[str] = mapped_column(String(128), nullable=False)
     Примечание: Mapped[str] = mapped_column(Text, nullable=False)
+class Привычки(Base):
+    __tablename__ = "Привычки"
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, nullable=False)
+    Требуемый_Навык: Mapped[str] = mapped_column(String(128), nullable=False)
+    Главное_Препятствие: Mapped[str] = mapped_column(String(128), nullable=False)
+    Помогающий_Человек: Mapped[str] = mapped_column(String(128), nullable=False)
+    Триггер_Привычки: Mapped[str] = mapped_column(String(128), nullable=False)
+    Награда_Привычки: Mapped[str] = mapped_column(String(128), nullable=False)
+    Требование_Заказчика: Mapped[str] = mapped_column(String(128), nullable=False)
+    Требование_Исполнителя: Mapped[str] = mapped_column(String(128), nullable=False)
+    Целевое_Число_Повторений: Mapped[str] = mapped_column(String(128), nullable=False)
+    Выполненное_Число_Повторений: Mapped[str] = mapped_column(String(128), nullable=False)
+    Дата_регистрации_ритуала: Mapped[str] = mapped_column(String(128), nullable=False)
+    Дата_выполнения_ритуала: Mapped[str] = mapped_column(String(128), nullable=False)
+    Отметка_Времени: Mapped[int]= mapped_column(BIGINT, nullable=False)
 class Project_Schema(BaseModel):
     id: int
     Название_проекта: str = Field(min_length=10, max_length=128)
@@ -160,3 +175,12 @@ class Formir_Oceniv(BaseModel):
     Фамилия_Ученика: str = Field(min_length=5, max_length=25)
     Дата_Проведения: str = Field(min_length=5, max_length=25)
     Что_Делали_На_Уроке: str = Field(min_length=5, max_length=2000)
+class Privycka_Schema(BaseModel):
+   Требуемый_Навык: str = Field(min_length=10, max_length=128)
+   Главное_Препятствие: str = Field(min_length=10, max_length=128)
+   Помогающий_Человек: str = Field(min_length=10, max_length=128)
+   Триггер_Привычки: str = Field(min_length=10, max_length=128)
+   Награда_Привычки: str = Field(min_length=10, max_length=128)
+   Требование_Заказчика: str = Field(min_length=10, max_length=128)
+   Требование_Исполнителя: str = Field(min_length=10, max_length=128)
+   Целевое_Число_Повторений: str = Field(min_length=10, max_length=128)
