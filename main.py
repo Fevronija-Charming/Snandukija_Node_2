@@ -22,6 +22,7 @@ load_dotenv(find_dotenv())
 #заяц включён
 from faststream.rabbit.fastapi import RabbitBroker, RabbitRouter
 router=RabbitRouter(url=os.getenv("CLOUDAMQP_URL"))
+broker=RabbitBroker(url=os.getenv("CLOUDAMQP_URL"))
 from fastapi import FastAPI
 from fastapi import HTTPException
 app = FastAPI()
@@ -66,6 +67,36 @@ async def send_email_async_file(subject: str, recipients:str, body:str,file_path
     message=MessageSchema(subject=subject,recipients=recipient_list,body=body,subtype=MessageType.plain,attachments=[file_path])
     fast_mail = FastMail(configuracija_pochty)
     await fast_mail.send_message(message)
+async def register_lesson(svedenija_urok:list,recipient:str,soobshenije:str,background_task:BackgroundTasks):
+    try:
+        Urok_s_GrIntr = Уроки(Имя_Преподавателя=svedenija_urok[0], Фамилия_Преподавателя=svedenija_urok[1],
+        Предмет_Обучения=svedenija_urok[2], Имя_Ученика=svedenija_urok[3],Фамилия_Ученика=svedenija_urok[4],
+        Ступень_Обучения=svedenija_urok[5], Дата_Проведения=svedenija_urok[6],Время_Начала=svedenija_urok[7],
+        Длительность_Занятия_Мин=svedenija_urok[8],Стоимость_Занятия_Центов=svedenija_urok[9],
+        Что_Делали_На_Уроке=svedenija_urok[10], Задание_На_Дом=svedenija_urok[11],Примечание=svedenija_urok[12])
+        session = session_factory()
+        session.add(Urok_s_GrIntr)
+        await session.commit()
+        await session.close()
+        try:
+            subject="Добавлен новый урок"
+            recipient=recipient
+            body=soobshenije
+            await send_email_async(subject,recipient,body)
+            try:
+                await broker.publish(message="Успешно добавлен урок", queue="UROKI")
+                await broker.publish(message=f"{soobshenije}", queue="UROKI")
+                return soobshenije
+            except:
+                print("Проблема с брокером")
+        except:
+            async with broker:
+                await broker.publish(message="Ошибка при добавлении урока", queue="UROKI")
+                await broker.publish(message="Проблема с почтой", queue="UROKI")
+    except:
+        async with broker:
+            await broker.publish(message="Ошибка при добавлении урока", queue="UROKI")
+            await broker.publish(message="Проблема с базой данных", queue="UROKI")
     #os.remove(file_path)
 #@gamajun.post("/gamajun/add/", response_model=FastUI,response_model_exclude_none=True)
 #def insert_DB_urok_s_GrIntr(form:Annotated[Urok_Schema,FastUIForm[Urok_Schema]]):
@@ -387,31 +418,34 @@ async def insert_DB_urok_s_GrIntr(background_task: BackgroundTasks,Имя_Пре
     soobshenije=""
     for i in range(len(svedenija_urok)):
         soobshenije=soobshenije + uroki_labels[i] + " -> " + svedenija_urok[i] + "; "
-    try:
-        Urok_s_GrIntr = Уроки(Имя_Преподавателя=Имя_Преподавателя,Фамилия_Преподавателя=Фамилия_Преподавателя,
-        Предмет_Обучения = Предмет_Обучения, Имя_Ученика = Имя_Ученика,Фамилия_Ученика = Фамилия_Ученика,
-        Ступень_Обучения = Ступень_Обучения,Дата_Проведения = Дата_Проведения, Время_Начала = Время_Начала,
-        Длительность_Занятия_Мин = Длительность_Занятия_Мин, Стоимость_Занятия_Центов = Стоимость_Занятия_Центов,
-        Что_Делали_На_Уроке = Что_Делали_На_Уроке, Задание_На_Дом = Задание_На_Дом, Примечание = Примечание)
-        session = session_factory()
-        session.add(Urok_s_GrIntr)
-        await session.commit()
-        await session.close()
-        try:
+    recipient = os.getenv("RECIPIENT1")
+    background_task.add_task(register_lesson, svedenija_urok,recipient,soobshenije)
+    return soobshenije, components.FireEvent(event=GoToEvent(url="/gamajun/root"))
+    #try:
+        #Urok_s_GrIntr = Уроки(Имя_Преподавателя=Имя_Преподавателя,Фамилия_Преподавателя=Фамилия_Преподавателя,
+        #Предмет_Обучения = Предмет_Обучения, Имя_Ученика = Имя_Ученика,Фамилия_Ученика = Фамилия_Ученика,
+        #Ступень_Обучения = Ступень_Обучения,Дата_Проведения = Дата_Проведения, Время_Начала = Время_Начала,
+        #Длительность_Занятия_Мин = Длительность_Занятия_Мин, Стоимость_Занятия_Центов = Стоимость_Занятия_Центов,
+        #Что_Делали_На_Уроке = Что_Делали_На_Уроке, Задание_На_Дом = Задание_На_Дом, Примечание = Примечание)
+        #session = session_factory()
+        #session.add(Urok_s_GrIntr)
+        #await session.commit()
+        #await session.close()
+        #try:
             # заяц включен
-            await router.broker.publish(message="Добавлен новый урок", queue="UROKI")
-            await router.broker.publish(message=f"{soobshenije}", queue="UROKI")
-            try:
-                recipient = os.getenv("RECIPIENT1")
-                background_task.add_task(send_email_async, "Добавлен новый урок", recipient,soobshenije)
-                return soobshenije, components.FireEvent(event=GoToEvent(url="/gamajun/root"))
-            except:
-                raise HTTPException(status_code=500, detail="Проблема с почтой")
-        except:
-            raise HTTPException(status_code=500, detail="Проблема с брокером")
-    except:
-        raise HTTPException(status_code=500, detail="Проблема с базой данных")
-@gamajun.get("/api/project/svodka/", response_model=FastUI,response_model_exclude_none=True)
+            #await router.broker.publish(message="Добавлен новый урок", queue="UROKI")
+            #await router.broker.publish(message=f"{soobshenije}", queue="UROKI")
+            #try:
+                #recipient = os.getenv("RECIPIENT1")
+                #background_task.add_task(send_email_async, "Добавлен новый урок", recipient,soobshenije)
+                #return soobshenije, components.FireEvent(event=GoToEvent(url="/gamajun/root"))
+    #except:
+                #raise HTTPException(status_code=500, detail="Проблема с почтой")
+    #except:
+            #raise HTTPException(status_code=500, detail="Проблема с брокером")
+    #except:
+        #raise HTTPException(status_code=500, detail="Проблема с базой данных")
+@gamajun.get("/api/project/svodka", response_model=FastUI,response_model_exclude_none=True)
 async def show_project():
     import psycopg2 as ps
     connection = ps.connect(host=os.getenv("DBHOST"), database=os.getenv("DBNAME"), user=os.getenv("DBUSERNAME"),
@@ -458,7 +492,7 @@ async def show_project():
             return components.Page(components=
                             [components.Heading(text="Вот здесь проекты",level=2),
                              components.Table(data=vedomost),])
-@gamajun.get("/gamajun/uroki/arhiv", response_model=FastUI,response_model_exclude_none=True)
+@gamajun.get("/api/uroki/arhiv", response_model=FastUI,response_model_exclude_none=True)
 def show_uroky():
     import psycopg2 as ps
     connection = ps.connect(host=os.getenv("DBHOST"), database=os.getenv("DBNAME"), user=os.getenv("DBUSERNAME"),

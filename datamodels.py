@@ -158,7 +158,7 @@ class Urok_Schema_UI(BaseModel):
     Фамилия_Преподавателя: str = Field(min_length=5, max_length=25)
     Предмет_Обучения: str = Field(min_length=5, max_length=25)
     Имя_Ученика: str= Field(min_length=5, max_length=25)
-    Фамилия_Ученика: str= Field(min_length=5, max_length=25)
+    Фамилия_Ученика: str= Field(min_length=3, max_length=25)
     Ступень_Обучения: str= Field(min_length=5, max_length=25)
     Дата_Проведения: str= Field(min_length=5, max_length=25)
     Время_Начала: str= Field(min_length=5, max_length=25)
