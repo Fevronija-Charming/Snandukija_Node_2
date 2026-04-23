@@ -13,6 +13,8 @@ import psycopg2 as ps
 import asyncio
 import os
 import datetime, time
+#ОПОВЕЩЕНИЯ В МЕНЮ
+import logging
 from colorama import *
 from dotenv import find_dotenv, load_dotenv
 from fastui.forms import FastUIForm
@@ -84,11 +86,12 @@ async def register_lesson(svedenija_urok:list,recipient:str,soobshenije:str,back
             body=soobshenije
             await send_email_async(subject,recipient,body)
             try:
-                await broker.publish(message="Успешно добавлен урок", queue="UROKI")
-                await broker.publish(message=f"{soobshenije}", queue="UROKI")
-                return soobshenije
+                async with broker:
+                    await broker.publish(message="Успешно добавлен урок", queue="UROKI")
+                    await broker.publish(message=f"{soobshenije}", queue="UROKI")
+                    return soobshenije
             except:
-                print("Проблема с брокером")
+                logging.warning("Брокер неисправен")
         except:
             async with broker:
                 await broker.publish(message="Ошибка при добавлении урока", queue="UROKI")
