@@ -74,28 +74,26 @@ async def register_lesson(svedenija_urok:list,recipient:str,soobshenije:str,back
         Urok_s_GrIntr = Уроки(Имя_Преподавателя=svedenija_urok[0], Фамилия_Преподавателя=svedenija_urok[1],
         Предмет_Обучения=svedenija_urok[2], Имя_Ученика=svedenija_urok[3],Фамилия_Ученика=svedenija_urok[4],
         Ступень_Обучения=svedenija_urok[5], Дата_Проведения=svedenija_urok[6],Время_Начала=svedenija_urok[7],
-        Длительность_Занятия_Мин=svedenija_urok[8],Стоимость_Занятия_Центов=svedenija_urok[9],
+        Длительность_Занятия_Мин=int(svedenija_urok[8]),Стоимость_Занятия_Центов=int(svedenija_urok[9]),
         Что_Делали_На_Уроке=svedenija_urok[10], Задание_На_Дом=svedenija_urok[11],Примечание=svedenija_urok[12])
         session = session_factory()
         session.add(Urok_s_GrIntr)
         await session.commit()
         await session.close()
         try:
-            subject="Добавлен новый урок"
-            recipient=recipient
-            body=soobshenije
-            await send_email_async(subject,recipient,body)
-            try:
-                async with broker:
-                    await broker.publish(message="Успешно добавлен урок", queue="UROKI")
-                    await broker.publish(message=f"{soobshenije}", queue="UROKI")
-                    return soobshenije
-            except:
-                logging.warning("Брокер неисправен")
-        except:
             async with broker:
-                await broker.publish(message="Ошибка при добавлении урока", queue="UROKI")
-                await broker.publish(message="Проблема с почтой", queue="UROKI")
+                await broker.publish(message="Успешно добавлен урок", queue="UROKI")
+                await broker.publish(message=f"{soobshenije}", queue="UROKI")
+                try:
+                    subject = "Добавлен новый урок"
+                    recipient = recipient
+                    body = soobshenije
+                    await send_email_async(subject, recipient, body)
+                except:
+                    async with broker:
+                        await broker.publish(message="Ошибка при добавлении урока", queue="UROKI")
+                        await broker.publish(message="Проблема с почтой", queue="UROKI")
+        except: logging.warning("Брокер неисправен")
     except:
         async with broker:
             await broker.publish(message="Ошибка при добавлении урока", queue="UROKI")
@@ -253,41 +251,41 @@ async def insert_DB_privycka_s_GrIntr(background_task: BackgroundTasks, Треб
             raise HTTPException(status_code=500, detail="Проблема с брокером")
 #raise HTTPException(status_code=500, detail="Проблема с базой данных")
 #@gamajun.post("/api/add")
-@gamajun.post("/api/uroki/add")
-async def insert_DB_urok_s_GrIntr(background_task: BackgroundTasks,Имя_Преподавателя: str = Form(),Фамилия_Преподавателя: str = Form(),
-    Предмет_Обучения: str = Form(),Имя_Ученика: str= Form(),Фамилия_Ученика: str= Form(),Ступень_Обучения: str= Form(),
-    Дата_Проведения: str= Form(),Время_Начала: str= Form(),Длительность_Занятия_Мин: int= Form(),
-    Стоимость_Занятия_Центов: int= Form(), Что_Делали_На_Уроке: str= Form(),
-    Задание_На_Дом: str= Form(), Примечание: str= Form()):
-    svedenija_urok = [Имя_Преподавателя, Фамилия_Преподавателя, Предмет_Обучения, Имя_Ученика, Фамилия_Ученика, Ступень_Обучения,
-    Дата_Проведения, Время_Начала,str(Длительность_Занятия_Мин),str(Стоимость_Занятия_Центов), Что_Делали_На_Уроке,Задание_На_Дом, Примечание]
-    soobshenije=""
-    for i in range(len(svedenija_urok)):
-        soobshenije=soobshenije + uroki_labels[i] + " -> " + svedenija_urok[i] + "; "
-    try:
-        Urok_s_GrIntr = Уроки(Имя_Преподавателя=Имя_Преподавателя,Фамилия_Преподавателя=Фамилия_Преподавателя,
-        Предмет_Обучения = Предмет_Обучения, Имя_Ученика = Имя_Ученика,Фамилия_Ученика = Фамилия_Ученика,
-        Ступень_Обучения = Ступень_Обучения,Дата_Проведения = Дата_Проведения, Время_Начала = Время_Начала,
-        Длительность_Занятия_Мин = Длительность_Занятия_Мин, Стоимость_Занятия_Центов = Стоимость_Занятия_Центов,
-        Что_Делали_На_Уроке = Что_Делали_На_Уроке, Задание_На_Дом = Задание_На_Дом, Примечание = Примечание)
-        session = session_factory()
-        session.add(Urok_s_GrIntr)
-        await session.commit()
-        await session.close()
-        try:
+#@gamajun.post("/api/uroki/add")
+#async def insert_DB_urok_s_GrIntr(background_task: BackgroundTasks,Имя_Преподавателя: str = Form(),Фамилия_Преподавателя: str = Form(),
+    #Предмет_Обучения: str = Form(),Имя_Ученика: str= Form(),Фамилия_Ученика: str= Form(),Ступень_Обучения: str= Form(),
+    #Дата_Проведения: str= Form(),Время_Начала: str= Form(),Длительность_Занятия_Мин: int= Form(),
+    #Стоимость_Занятия_Центов: int= Form(), Что_Делали_На_Уроке: str= Form(),
+    #Задание_На_Дом: str= Form(), Примечание: str= Form()):
+    #svedenija_urok = [Имя_Преподавателя, Фамилия_Преподавателя, Предмет_Обучения, Имя_Ученика, Фамилия_Ученика, Ступень_Обучения,
+    #Дата_Проведения, Время_Начала,str(Длительность_Занятия_Мин),str(Стоимость_Занятия_Центов), Что_Делали_На_Уроке,Задание_На_Дом, Примечание]
+    #soobshenije=""
+    #for i in range(len(svedenija_urok)):
+    # soobshenije=soobshenije + uroki_labels[i] + " -> " + svedenija_urok[i] + "; "
+    #try:
+        #Urok_s_GrIntr = Уроки(Имя_Преподавателя=Имя_Преподавателя,Фамилия_Преподавателя=Фамилия_Преподавателя,
+        #Предмет_Обучения = Предмет_Обучения, Имя_Ученика = Имя_Ученика,Фамилия_Ученика = Фамилия_Ученика,
+        #Ступень_Обучения = Ступень_Обучения,Дата_Проведения = Дата_Проведения, Время_Начала = Время_Начала,
+        #Длительность_Занятия_Мин = Длительность_Занятия_Мин, Стоимость_Занятия_Центов = Стоимость_Занятия_Центов,
+        #Что_Делали_На_Уроке = Что_Делали_На_Уроке, Задание_На_Дом = Задание_На_Дом, Примечание = Примечание)
+        #session = session_factory()
+        #session.add(Urok_s_GrIntr)
+        #await session.commit()
+        #await session.close()
+        #try:
             # заяц включен
-            await router.broker.publish(message="Добавлен новый урок", queue="UROKI")
-            await router.broker.publish(message=f"{soobshenije}", queue="UROKI")
-            try:
-                recipient = os.getenv("RECIPIENT1")
-                background_task.add_task(send_email_async, "Добавлен новый урок", recipient,soobshenije)
-                return soobshenije, components.FireEvent(event=GoToEvent(url="/gamajun/root"))
-            except:
-                raise HTTPException(status_code=500, detail="Проблема с почтой")
-        except:
-            raise HTTPException(status_code=500, detail="Проблема с брокером")
-    except:
-        raise HTTPException(status_code=500, detail="Проблема с базой данных")
+            #await router.broker.publish(message="Добавлен новый урок", queue="UROKI")
+            #await router.broker.publish(message=f"{soobshenije}", queue="UROKI")
+            #try:
+                #recipient = os.getenv("RECIPIENT1")
+                #background_task.add_task(send_email_async, "Добавлен новый урок", recipient,soobshenije)
+                #return soobshenije, components.FireEvent(event=GoToEvent(url="/gamajun/root"))
+            #except:
+                #raise HTTPException(status_code=500, detail="Проблема с почтой")
+            #except:
+            #raise HTTPException(status_code=500, detail="Проблема с брокером")
+        #except:
+        #raise HTTPException(status_code=500, detail="Проблема с базой данных")
 @gamajun.get("/api/add/project", response_model=FastUI,response_model_exclude_none=True)
 def create_urok_graph_inter():
     return components.Page(components=
@@ -422,7 +420,7 @@ async def insert_DB_urok_s_GrIntr(background_task: BackgroundTasks,Имя_Пре
     for i in range(len(svedenija_urok)):
         soobshenije=soobshenije + uroki_labels[i] + " -> " + svedenija_urok[i] + "; "
     recipient = os.getenv("RECIPIENT1")
-    background_task.add_task(register_lesson, svedenija_urok,recipient,soobshenije)
+    background_task.add_task(register_lesson, svedenija_urok,recipient,soobshenije,background_task)
     return soobshenije, components.FireEvent(event=GoToEvent(url="/gamajun/root"))
     #try:
         #Urok_s_GrIntr = Уроки(Имя_Преподавателя=Имя_Преподавателя,Фамилия_Преподавателя=Фамилия_Преподавателя,
