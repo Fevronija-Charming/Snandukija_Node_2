@@ -678,16 +678,16 @@ async def get_vedomost(background_task: BackgroundTasks):
                 await session.close()
                 try:
                     ws.append(["/","/","/","/","/","/","/","/","/",chasy,zarplata])
-                    ws.append(["SH õpilaste mitteilmuse pretsentsioonid 87,50"])
-                    ws.append(["Mittemakstud osa verbuarist 38,25"])
-                    ws.append(["Mittemasktud osa januarist 39,00"])
-                    ws.append(["Mittemasktud osa nomembrist 12,50"])
+                    #ws.append(["SH õpilaste mitteilmuse pretsentsioonid 87,50"])
+                    #ws.append(["Mittemakstud osa verbuarist 38,25"])
+                    #ws.append(["Mittemasktud osa januarist 39,00"])
+                    ws.append(["Mittemasktud osa nomembrist 77,50"])
                     wb.save("Посчитать зарплату.xlsx")
                     try:
                             soobshenije="See on aruanne märtsi tundide kohta"
                             recipient = os.getenv("RECIPIENT2")
                             File_path="Посчитать зарплату.xlsx"
-                            background_task.add_task(send_email_async_file, "Tunnid märtsis", recipient, soobshenije, File_path)
+                            background_task.add_task(send_email_async_file, "Tunnid aprillis", recipient, soobshenije, File_path)
                             return FileResponse(path="Посчитать зарплату.xlsx", filename="Посчитать зарплату.xlsx",
                                         media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
                     except: raise HTTPException(status_code=500, detail="Проблема с почтой")
