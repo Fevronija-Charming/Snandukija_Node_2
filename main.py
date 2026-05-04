@@ -100,7 +100,7 @@ async def register_lesson(svedenija_urok:list,recipient:str,soobshenije:str,back
             await broker.publish(message="Проблема с базой данных", queue="UROKI")
 async def register_lesson_anna(svedenija_urok_anna: list, recipient_anna: str, soobshenije_anna: str, background_task: BackgroundTasks):
         try:
-            Urok_s_GrIntr_Anna = Уроки(Имя_Преподавателя=svedenija_urok_anna[0], Фамилия_Преподавателя=svedenija_urok_anna[1],
+            Urok_s_GrIntr_Anna = Уроки_Анна(Имя_Преподавателя=svedenija_urok_anna[0], Фамилия_Преподавателя=svedenija_urok_anna[1],
             Предмет_Обучения=svedenija_urok_anna[2], Имя_Ученика=svedenija_urok_anna[3],Фамилия_Ученика=svedenija_urok_anna[4],
             Ступень_Обучения=svedenija_urok_anna[5], Дата_Проведения=svedenija_urok_anna[6],Время_Начала=svedenija_urok_anna[7],
             Длительность_Занятия_Мин=int(svedenija_urok_anna[8]),Стоимость_Занятия_Центов=int(svedenija_urok_anna[9]),
