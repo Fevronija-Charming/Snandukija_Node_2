@@ -44,7 +44,7 @@ from sqlalchemy import select, delete, insert, update
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 engine = create_async_engine(os.getenv("DBURL"),echo=True,max_overflow=5,pool_size=5)
 session_factory = async_sessionmaker(bind=engine,class_=AsyncSession,expire_on_commit=False,autoflush=True)
-from datamodels import Уроки, Уроки_Архив, Base, Проект,Привычки
+from datamodels import Уроки, Уроки_Архив, Base, Проект,Привычки,Уроки_Анна
 from datamodels import Project_Schema, Urok_Schema,Urok_Schema_UI,Project_Schema_UI,Uchenik_Poisk,Privycka_Schema
 #конфигурация сервиса по отправке почты
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
@@ -71,7 +71,7 @@ async def send_email_async_file(subject: str, recipients:str, body:str,file_path
     await fast_mail.send_message(message)
 async def register_lesson(svedenija_urok:list,recipient:str,soobshenije:str,background_task:BackgroundTasks):
     try:
-        Urok_s_GrIntr = Уроки(Имя_Преподавателя=svedenija_urok[0], Фамилия_Преподавателя=svedenija_urok[1],
+        Urok_s_GrIntr = Уроки_Анна(Имя_Преподавателя=svedenija_urok[0], Фамилия_Преподавателя=svedenija_urok[1],
         Предмет_Обучения=svedenija_urok[2], Имя_Ученика=svedenija_urok[3],Фамилия_Ученика=svedenija_urok[4],
         Ступень_Обучения=svedenija_urok[5], Дата_Проведения=svedenija_urok[6],Время_Начала=svedenija_urok[7],
         Длительность_Занятия_Мин=int(svedenija_urok[8]),Стоимость_Занятия_Центов=int(svedenija_urok[9]),
@@ -98,6 +98,36 @@ async def register_lesson(svedenija_urok:list,recipient:str,soobshenije:str,back
         async with broker:
             await broker.publish(message="Ошибка при добавлении урока", queue="UROKI")
             await broker.publish(message="Проблема с базой данных", queue="UROKI")
+async def register_lesson_anna(svedenija_urok_anna: list, recipient_anna: str, soobshenije_anna: str, background_task: BackgroundTasks):
+        try:
+            Urok_s_GrIntr_Anna = Уроки(Имя_Преподавателя=svedenija_urok_anna[0], Фамилия_Преподавателя=svedenija_urok_anna[1],
+            Предмет_Обучения=svedenija_urok_anna[2], Имя_Ученика=svedenija_urok_anna[3],Фамилия_Ученика=svedenija_urok_anna[4],
+            Ступень_Обучения=svedenija_urok_anna[5], Дата_Проведения=svedenija_urok_anna[6],Время_Начала=svedenija_urok_anna[7],
+            Длительность_Занятия_Мин=int(svedenija_urok_anna[8]),Стоимость_Занятия_Центов=int(svedenija_urok_anna[9]),
+            Что_Делали_На_Уроке=svedenija_urok_anna[10], Задание_На_Дом=svedenija_urok_anna[11],Примечание=svedenija_urok_anna[12])
+            session = session_factory()
+            session.add(Urok_s_GrIntr_Anna)
+            await session.commit()
+            await session.close()
+            try:
+                async with broker:
+                    await broker.publish(message="Успешно добавлен урок", queue="UROKI")
+                    await broker.publish(message=f"{soobshenije_anna}", queue="UROKI")
+                    try:
+                        subject = "Добавлен новый урок"
+                        recipient = recipient_anna
+                        body = soobshenije_anna
+                        await send_email_async(subject, recipient, body)
+                    except:
+                        async with broker:
+                            await broker.publish(message="Ошибка при добавлении урока", queue="UROKI")
+                            await broker.publish(message="Проблема с почтой", queue="UROKI")
+            except:
+                logging.warning("Брокер неисправен")
+        except:
+            async with broker:
+                await broker.publish(message="Ошибка при добавлении урока", queue="UROKI")
+                await broker.publish(message="Проблема с базой данных", queue="UROKI")
     #os.remove(file_path)
 #@gamajun.post("/gamajun/add/", response_model=FastUI,response_model_exclude_none=True)
 #def insert_DB_urok_s_GrIntr(form:Annotated[Urok_Schema,FastUIForm[Urok_Schema]]):
@@ -119,7 +149,9 @@ async def show_root():
         components.Link(components=[components.Text(text="СЕГМЕНТ ПРИВЫЧЕК")],on_click=GoToEvent(url="/gamajun/privychki")),
         components.Link(components=[components.Text(text="СЕГМЕНТ КАЛЕНДАРНЫХ ДЕЛ")],on_click=GoToEvent(url="/gamajun/kalendarnoje")),
         components.Link(components=[components.Text(text="СЕГМЕНТ РАЗОВЫХ ДЕЛ")],on_click=GoToEvent(url="/gamajun/razovoje")),
-        components.Link(components=[components.Text(text="СЕГМЕНТ ЗАМЕТОК")], on_click=GoToEvent(url="/gamajun/zametki")),],
+        components.Link(components=[components.Text(text="СЕГМЕНТ ЗАМЕТОК")], on_click=GoToEvent(url="/gamajun/zametki")),
+        #ССЫЛКА ДЛЯ АНИ
+        components.Link(components=[components.Text(text="УРОКИ АННА")], on_click=GoToEvent(url="/gamajun/anna")),],
         class_name="d-flex flex-column align-items-center")
 #МЕНЮ ПЕРВОГО СЛОЯ
 #ОТРИСОВКА МЕНЮ УРОКОВ
@@ -213,6 +245,12 @@ def create_urok_graph_inter():
     return components.Page(components=
                             [components.Heading(text="Добавить привычку",level=2),
                              components.ModelForm(model=Privycka_Schema,submit_url="/gamajun/api/privycka/add"),]) #/add
+#ВВОД УЧЕНИКОВ ДЛЯ АНИ
+@gamajun.get("/api/anna", response_model=FastUI,response_model_exclude_none=True)
+def create_urok_graph_inter():
+    return components.Page(components=
+                            [components.Heading(text="Добавить урок",level=2),
+                             components.ModelForm(model=Urok_Schema,submit_url="/gamajun/api/anna_add"),]) #/add
 #РЕГИСТРАЦИЯ ДАННЫХ
 @gamajun.post("/api/privycka/add")
 async def insert_DB_privycka_s_GrIntr(background_task: BackgroundTasks, Требуемый_Навык: str = Form(), Главное_Препятствие: str = Form(),
@@ -422,6 +460,26 @@ async def insert_DB_urok_s_GrIntr(background_task: BackgroundTasks,Имя_Пре
     recipient = os.getenv("RECIPIENT1")
     background_task.add_task(register_lesson, svedenija_urok,recipient,soobshenije,background_task)
     return soobshenije, components.FireEvent(event=GoToEvent(url="/gamajun/root"))
+#ЛОГИКА ДОБАВЛЕНИЯ УРОКОВ АНЯ
+@gamajun.post("/api/anna_add")
+async def insert_urok_anna(background_task: BackgroundTasks, Имя_Преподавателя: str = Form(),
+                                      Фамилия_Преподавателя: str = Form(),
+                                      Предмет_Обучения: str = Form(), Имя_Ученика: str = Form(),
+                                      Фамилия_Ученика: str = Form(), Ступень_Обучения: str = Form(),
+                                      Дата_Проведения: str = Form(), Время_Начала: str = Form(),
+                                      Длительность_Занятия_Мин: int = Form(),
+                                      Стоимость_Занятия_Центов: int = Form(), Что_Делали_На_Уроке: str = Form(),
+                                      Задание_На_Дом: str = Form(), Примечание: str = Form()):
+        svedenija_urok_anna = [Имя_Преподавателя, Фамилия_Преподавателя, Предмет_Обучения, Имя_Ученика, Фамилия_Ученика,
+                          Ступень_Обучения,
+                          Дата_Проведения, Время_Начала, str(Длительность_Занятия_Мин), str(Стоимость_Занятия_Центов),
+                          Что_Делали_На_Уроке, Задание_На_Дом, Примечание]
+        soobshenije_anna = ""
+        for i in range(len(svedenija_urok_anna)):
+            soobshenije_anna = soobshenije_anna + uroki_labels[i] + " -> " + svedenija_urok_anna[i] + "; "
+        recipient_anna = os.getenv("RECIPIENT3")
+        background_task.add_task(register_lesson_anna, svedenija_urok_anna, recipient_anna, soobshenije_anna, background_task)
+        return soobshenije_anna, components.FireEvent(event=GoToEvent(url="/gamajun/root"))
     #try:
         #Urok_s_GrIntr = Уроки(Имя_Преподавателя=Имя_Преподавателя,Фамилия_Преподавателя=Фамилия_Преподавателя,
         #Предмет_Обучения = Предмет_Обучения, Имя_Ученика = Имя_Ученика,Фамилия_Ученика = Фамилия_Ученика,

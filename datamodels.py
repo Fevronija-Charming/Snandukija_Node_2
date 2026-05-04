@@ -142,11 +142,11 @@ class Urok_Schema(BaseModel):
     Имя_Преподавателя: str = Field(min_length=5, max_length=25)
     Фамилия_Преподавателя: str = Field(min_length=5, max_length=25)
     Предмет_Обучения: str = Field(min_length=5, max_length=25)
-    Имя_Ученика: str= Field(min_length=5, max_length=25)
-    Фамилия_Ученика: str= Field(min_length=5, max_length=25)
+    Имя_Ученика: str= Field(min_length=2, max_length=25)
+    Фамилия_Ученика: str= Field(min_length=2, max_length=25)
     Ступень_Обучения: str= Field(min_length=5, max_length=25)
-    Дата_Проведения: str= Field(min_length=5, max_length=25)
-    Время_Начала: str= Field(min_length=5, max_length=25)
+    Дата_Проведения: str= Field(min_length=3, max_length=25)
+    Время_Начала: str= Field(min_length=3, max_length=25)
     Длительность_Занятия_Мин: int
     Стоимость_Занятия_Центов: int
     Что_Делали_На_Уроке: str= Field(min_length=5, max_length=2500)
@@ -184,3 +184,20 @@ class Privycka_Schema(BaseModel):
    Требование_Заказчика: str = Field(min_length=10, max_length=128)
    Требование_Исполнителя: str = Field(min_length=10, max_length=128)
    Целевое_Число_Повторений: str = Field(min_length=10, max_length=128)
+#таблица БД для учеников Анны
+class Уроки_Анна(Base):
+    __tablename__ = "Уроки_Анна"
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, nullable=False)
+    Имя_Преподавателя: Mapped[str] = mapped_column(String(128), nullable=False)
+    Фамилия_Преподавателя: Mapped[str] = mapped_column(String(128), nullable=False)
+    Предмет_Обучения: Mapped[str] = mapped_column(String(128), nullable=False)
+    Имя_Ученика: Mapped[str] = mapped_column(String(128), nullable=False)
+    Фамилия_Ученика: Mapped[str] = mapped_column(String(128), nullable=False)
+    Ступень_Обучения: Mapped[str] = mapped_column(String(128), nullable=False)
+    Дата_Проведения: Mapped[str] = mapped_column(String(128), nullable=False)
+    Время_Начала: Mapped[str] = mapped_column(String(128), nullable=False)
+    Длительность_Занятия_Мин: Mapped[int]
+    Стоимость_Занятия_Центов: Mapped[int]
+    Что_Делали_На_Уроке: Mapped[str] = mapped_column(Text, nullable=False)
+    Задание_На_Дом: Mapped[str] = mapped_column(String(128), nullable=False)
+    Примечание: Mapped[str] = mapped_column(Text, nullable=False)
