@@ -69,9 +69,10 @@ async def send_email_async_file(subject: str, recipients:str, body:str,file_path
     message=MessageSchema(subject=subject,recipients=recipient_list,body=body,subtype=MessageType.plain,attachments=[file_path])
     fast_mail = FastMail(configuracija_pochty)
     await fast_mail.send_message(message)
+# фоновая задача для регистрации урока в базе данных
 async def register_lesson(svedenija_urok:list,recipient:str,soobshenije:str,background_task:BackgroundTasks):
     try:
-        Urok_s_GrIntr = Уроки_Анна(Имя_Преподавателя=svedenija_urok[0], Фамилия_Преподавателя=svedenija_urok[1],
+        Urok_s_GrIntr = Уроки(Имя_Преподавателя=svedenija_urok[0], Фамилия_Преподавателя=svedenija_urok[1],
         Предмет_Обучения=svedenija_urok[2], Имя_Ученика=svedenija_urok[3],Фамилия_Ученика=svedenija_urok[4],
         Ступень_Обучения=svedenija_urok[5], Дата_Проведения=svedenija_urok[6],Время_Начала=svedenija_urok[7],
         Длительность_Занятия_Мин=int(svedenija_urok[8]),Стоимость_Занятия_Центов=int(svedenija_urok[9]),
@@ -98,6 +99,7 @@ async def register_lesson(svedenija_urok:list,recipient:str,soobshenije:str,back
         async with broker:
             await broker.publish(message="Ошибка при добавлении урока", queue="UROKI")
             await broker.publish(message="Проблема с базой данных", queue="UROKI")
+# фоновая задача для регистрации урока Ани в базе данных
 async def register_lesson_anna(svedenija_urok_anna: list, recipient_anna: str, soobshenije_anna: str, background_task: BackgroundTasks):
         try:
             Urok_s_GrIntr_Anna = Уроки_Анна(Имя_Преподавателя=svedenija_urok_anna[0], Фамилия_Преподавателя=svedenija_urok_anna[1],
